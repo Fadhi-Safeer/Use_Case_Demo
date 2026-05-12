@@ -1,0 +1,32 @@
+:root {
+  --bg0: #080b10;
+  --bg1: #0d1117;
+  --bg2: #111720;
+  --bg3: #1a2332;
+  --border: #1a2332;
+  --border2: #243044;
+
+  --text: #c9d1de;
+  --text2: #6b7a8d;
+  --text3: #3d4f63;
+
+  --green: #39ff8a;
+  --green2: #20c060;
+  --green-dim: #0a2e1a;
+  --amber: #f59e0b;
+  --amber-dim: #2a1a00;
+  --red: #ef4444;
+  --red-dim: #2a0a0a;
+  --blue: #3b82f6;
+  --blue-dim: #0d1f40;
+
+  --radius: 6px;
+  --radius-sm: 4px;
+
+  --font-ui: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-logo: 'Rajdhani', sans-serif;
+
+  --glow: rgba(32, 192, 96, 0.35);
+  --glass: rgba(13, 17, 23, 0.85);
+}

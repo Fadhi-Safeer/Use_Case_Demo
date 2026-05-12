@@ -1,0 +1,8 @@
+{
+  "qwen3-vl:2b-cli": {
+    "endpoint": "llamacpp_cli",
+    "supports_thinking": false,
+    "raw": false,
+    "response_field": "choices.0.message.content"
+  }
+}

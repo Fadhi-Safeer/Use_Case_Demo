@@ -1,0 +1,56 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Environment / secrets
+.env
+.env.*
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Claude / local tool settings
+.claude/settings.local.json
+
+# Logs
+*.log
+
+# Build / packaging
+build/
+dist/
+*.egg-info/
+
+# Model / weights / large binaries
+models/
+*.gguf
+*.bin
+*.safetensors
+
+# Runtime temp files
+tmp/
+temp/
+*.tmp
+
+# Static generated cache
+static/**/*.map
+
+# Jetson / misc
+*.so
+*.a
+
+CLAUDE.md
+NOTES.md
+bin/

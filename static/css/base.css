@@ -1,0 +1,51 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg0);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+button {
+  font-family: var(--font-ui);
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+textarea {
+  font-family: var(--font-ui);
+  outline: none;
+  resize: none;
+}
+
+input[type="number"],
+select {
+  font-family: var(--font-ui);
+  outline: none;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+@keyframes pulse-border {
+  0%, 100% { border-color: var(--amber); opacity: 1; }
+  50%       { border-color: var(--amber-dim); opacity: 0.5; }
+}
+
+@keyframes glow-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}

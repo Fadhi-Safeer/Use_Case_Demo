@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Robomy Live VLM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="/static/css/variables.css">
+  <link rel="stylesheet" href="/static/css/base.css">
+  <link rel="stylesheet" href="/static/css/layout.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+  <link rel="stylesheet" href="/static/css/camera.css">
+</head>
+
+<body>
+  <div id="app">
+
+    <!-- SCREEN 1: Prompt entry (shown on load) -->
+    <div id="prompt-screen">
+      <div id="prompt-card">
+        <button id="prompt-settings-btn">⚙</button>
+        <div id="prompt-settings-panel">
+          <div class="ps-row">
+            <span class="ps-label">Image size</span>
+            <select id="ps-image-size" class="ps-control">
+              <option value="320">320 px</option>
+              <option value="480" selected>480 px — default</option>
+              <option value="640">640 px</option>
+            </select>
+            <span class="ps-helper">Larger = more accurate, slower</span>
+          </div>
+          <div class="ps-row">
+            <span class="ps-label">Max tokens</span>
+            <input type="number" id="ps-num-predict" class="ps-control" value="512" min="500" max="1024" step="50">
+            <span class="ps-helper">Min 500 — Qwen3 returns empty below this</span>
+          </div>
+          <div class="ps-row">
+            <span class="ps-label">Capture interval</span>
+            <select id="ps-interval" class="ps-control">
+              <option value="3" selected>3s — default</option>
+              <option value="5">5s</option>
+              <option value="10">10s</option>
+            </select>
+            <span class="ps-helper">How often the model analyzes a new frame</span>
+          </div>
+          <div class="ps-row ps-row-full">
+            <span class="ps-label">System prompt</span>
+            <textarea id="ps-system-prompt" class="ps-control ps-textarea" rows="3"></textarea>
+            <span class="ps-helper">Instructs the model how to behave. Changes take effect on next session.</span>
+          </div>
+          <button id="ps-reset-btn">Reset to defaults</button>
+        </div>
+
+        <div class="logo">
+          <div class="logo-dot"></div>
+          Robomy Live VLM
+        </div>
+        <div id="prompt-subtitle">Real-time vision analysis on Jetson Orin Nano</div>
+
+        <div id="preset-row">
+          <button class="preset-btn" id="preset-describe"><i data-lucide="eye"></i> Describe</button>
+          <button class="preset-btn" id="preset-read"><i data-lucide="scan-text"></i> Read Label</button>
+          <button class="preset-btn" id="preset-count"><i data-lucide="hash"></i> Count</button>
+        </div>
+
+        <textarea id="prompt-input" placeholder="What should the model look for?"></textarea>
+
+        <button id="start-btn">
+          <i data-lucide="radio"></i> Start Live Analysis
+        </button>
+
+        <div id="cam-status-line">
+          <div class="status-dot cam-err" id="cam-dot-prompt"></div>
+          <span id="cam-text-prompt">Checking camera…</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 2: Live view (hidden on load, shown after start) -->
+    <div id="live-screen" class="hidden">
+
+      <!-- Top header bar -->
+      <header id="header">
+        <div class="logo"><div class="logo-dot"></div>Robomy Live VLM</div>
+        <div id="header-center">
+          <span id="header-prompt-text"></span>
+        </div>
+        <div id="header-right">
+          <div class="status-pill">
+            <div class="status-dot cam-err" id="cam-dot"></div>
+            <i data-lucide="video"></i>
+            <span id="cam-text" style="font-size:10px">Camera</span>
+          </div>
+          <div class="status-pill">
+            <div class="status-dot idle" id="proc-dot"></div>
+            <i data-lucide="activity"></i>
+            <span id="proc-text">Idle</span>
+          </div>
+          <button id="stop-btn"><i data-lucide="square"></i> Stop</button>
+        </div>
+      </header>
+
+      <!-- Two-panel main -->
+      <div id="live-main">
+
+        <!-- Left: video -->
+        <div id="video-panel">
+          <img id="feed-img" alt="Live feed">
+          <div id="feed-offline">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M23 7l-7 5 7 5V7z" />
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+              <line x1="1" y1="1" x2="23" y2="23" />
+            </svg>
+            No camera signal
+          </div>
+          <div id="cam-overlay">
+            <span class="cam-label">/dev/video0</span>
+            <span class="cam-live">
+              <div class="live-dot"></div>LIVE
+            </span>
+          </div>
+        </div>
+
+        <!-- Right: results -->
+        <div id="results-panel">
+          <div id="results-panel-header">
+            <span id="active-prompt-label"></span>
+            <div id="analyzing-indicator" style="display:none">
+              <div class="live-pulse-dot"></div>
+              <span>Analyzing&hellip;</span>
+            </div>
+            <button id="clear-results-btn" onclick="clearLiveResults()">
+              <i data-lucide="trash-2"></i> Clear
+            </button>
+          </div>
+          <div id="results-list">
+            <div id="empty-state">Waiting for first inference…</div>
+          </div>
+        </div>
+
+      </div><!-- /live-main -->
+
+    </div><!-- /live-screen -->
+
+  </div><!-- /app -->
+
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/state.js"></script>
+  <script src="/static/js/render.js"></script>
+  <script src="/static/js/ui.js"></script>
+</body>
+
+</html>
