@@ -430,76 +430,307 @@
 .home-wrap {
   display: flex;
   flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: #070b12;
+}
+
+/* Hero */
+.home-hero {
+  position: relative;
+  display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  padding: 32px 20px;
+  padding: 44px 20px 36px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: radial-gradient(ellipse 80% 120% at 50% 50%, rgba(10,16,28,1) 0%, #070b12 100%);
 }
 
-.home-inner {
-  max-width: 560px;
-  width: 100%;
+.home-hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(245,158,11,0.25) 30%, rgba(167,139,250,0.15) 70%, transparent 100%);
+}
+
+.home-scan-bg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.home-scan-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(245, 158, 11, 0.10);
+  animation: home-ring-pulse 3.5s ease-in-out infinite;
+}
+.home-scan-ring-1 { width: 280px; height: 280px; animation-delay: 0s; }
+.home-scan-ring-2 { width: 460px; height: 460px; animation-delay: 0.7s; opacity: 0.6; }
+.home-scan-ring-3 { width: 660px; height: 660px; animation-delay: 1.4s; opacity: 0.3; }
+
+.home-scan-sweep {
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 255deg,
+    rgba(245, 158, 11, 0.04) 285deg,
+    rgba(245, 158, 11, 0.14) 354deg,
+    transparent 360deg
+  );
+  animation: home-radar-sweep 5s linear infinite;
+}
+
+@keyframes home-radar-sweep {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes home-ring-pulse {
+  0%, 100% { border-color: rgba(245, 158, 11, 0.10); }
+  50%       { border-color: rgba(245, 158, 11, 0.26); }
+}
+
+.home-hero-inner {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  align-items: center;
+  gap: 16px;
 }
 
-.home-tagline {
+.home-logos {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.home-logo-sep {
+  width: 1px;
+  height: 38px;
+  background: linear-gradient(180deg, transparent, rgba(245,158,11,0.45), transparent);
+}
+
+.home-title {
   font-family: var(--font-logo);
-  font-size: 20px;
-  color: var(--text2);
+  font-size: 36px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 4px;
+  text-transform: uppercase;
   text-align: center;
-  letter-spacing: 0.5px;
+  line-height: 1;
 }
 
-.home-divider {
-  height: 1px;
-  background: var(--border2);
-  margin: 28px 0;
+.home-subtitle {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--amber);
+  text-transform: uppercase;
+  text-align: center;
+  opacity: 0.75;
 }
 
-.home-status-row {
+/* Status strip */
+.home-status-strip {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--border);
+  background: rgba(9, 14, 24, 0.85);
+  flex-shrink: 0;
+}
+
+.home-stat-tile {
+  flex: 1;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border);
-  font-family: var(--font-mono);
-  font-size: 12px;
+  padding: 14px 22px;
 }
 
-.home-status-row svg {
-  width: 14px;
-  height: 14px;
-  color: var(--text3);
+.home-stat-sep {
+  width: 1px;
+  background: var(--border);
+  margin: 10px 0;
   flex-shrink: 0;
 }
 
-.home-status-label {
+.home-stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 7px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  flex-shrink: 0;
+}
+
+.home-stat-icon svg {
+  width: 15px;
+  height: 15px;
+  color: var(--text3);
+}
+
+.home-stat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.home-stat-label {
+  font-size: 9px;
+  font-family: var(--font-mono);
   color: var(--text3);
   text-transform: uppercase;
-  letter-spacing: 1px;
-  font-size: 10px;
-  flex-shrink: 0;
-  width: 110px;
+  letter-spacing: 1.3px;
 }
 
-.home-status-val          { color: var(--text); }
+/* JS sets className = 'home-status-val online/offline' — keep this class */
+.home-status-val          { font-size: 13px; font-family: var(--font-mono); color: var(--text); font-weight: 500; }
 .home-status-val.online   { color: var(--gear2); }
 .home-status-val.offline  { color: var(--weapon2); }
 
-.home-desc {
-  color: var(--text2);
-  font-size: 13px;
-  line-height: 1.8;
-  white-space: pre-line;
-  font-family: var(--font-ui);
+/* Use-case launch cards */
+.home-uc-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  flex: 1;
+  min-height: 0;
 }
 
-.home-footer {
+.home-uc-card {
+  position: relative;
+  background: var(--bg1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 32px 28px 28px;
+  cursor: pointer;
+  transition: background 0.2s;
+  overflow: hidden;
+}
+
+.home-uc-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.home-uc-gear::before   { background: var(--gear-grad-h); }
+.home-uc-weapon::before { background: var(--weapon-grad-h); }
+.home-uc-custom::before { background: var(--custom-grad-h); }
+
+.home-uc-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.home-uc-gear::after   { background: radial-gradient(ellipse 60% 50% at 30% 30%, rgba(57,255,138,0.04) 0%, transparent 70%); }
+.home-uc-weapon::after { background: radial-gradient(ellipse 60% 50% at 30% 30%, rgba(255,69,69,0.04) 0%, transparent 70%); }
+.home-uc-custom::after { background: radial-gradient(ellipse 60% 50% at 30% 30%, rgba(167,139,250,0.04) 0%, transparent 70%); }
+
+.home-uc-card:hover { background: var(--bg2); }
+.home-uc-card:hover::before { opacity: 1; }
+.home-uc-card:hover::after  { opacity: 1; }
+
+.home-uc-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  border: 1px solid;
+  margin-bottom: 6px;
+  transition: box-shadow 0.25s;
+}
+
+.home-uc-gear   .home-uc-icon { border-color: var(--gear-border);   background: var(--gear-dim);   color: var(--gear); }
+.home-uc-weapon .home-uc-icon { border-color: var(--weapon-border); background: var(--weapon-dim); color: var(--weapon2); }
+.home-uc-custom .home-uc-icon { border-color: var(--custom-border); background: var(--custom-dim); color: var(--custom); }
+
+.home-uc-gear:hover   .home-uc-icon { box-shadow: 0 0 18px var(--gear-glow); }
+.home-uc-weapon:hover .home-uc-icon { box-shadow: 0 0 18px var(--weapon-glow); }
+.home-uc-custom:hover .home-uc-icon { box-shadow: 0 0 18px var(--custom-glow); }
+
+.home-uc-icon svg { width: 20px; height: 20px; }
+
+.home-uc-name {
+  font-family: var(--font-logo);
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
+  line-height: 1.1;
+}
+
+.home-uc-desc {
+  font-size: 12px;
+  font-family: var(--font-mono);
   color: var(--text3);
+  line-height: 1.65;
+  flex: 1;
+}
+
+.home-uc-launch {
+  display: flex;
+  align-items: center;
+  gap: 5px;
   font-size: 11px;
   font-family: var(--font-mono);
-  text-align: center;
-  margin-top: 28px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  margin-top: 6px;
+  transition: gap 0.2s;
 }
+
+.home-uc-gear   .home-uc-launch { color: var(--gear2); }
+.home-uc-weapon .home-uc-launch { color: var(--weapon2); }
+.home-uc-custom .home-uc-launch { color: var(--custom); }
+
+.home-uc-card:hover .home-uc-launch { gap: 9px; }
+
+.home-uc-launch svg { width: 11px; height: 11px; }
+
+/* Footer bar */
+.home-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 9px 20px;
+  border-top: 1px solid var(--border);
+  background: rgba(6, 10, 16, 0.9);
+  flex-shrink: 0;
+}
+
+.home-footer span {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text3);
+}
+
+.home-footer-dot { color: var(--border2) !important; }

@@ -11,8 +11,8 @@ _GEAR_SYSTEM = (
     "/no_think You are a construction site safety compliance inspector. "
     "Examine the image. If no worker is visible, answer No. "
     "If a worker is visible, check for a safety helmet or hard hat AND "
-    "a high-visibility vest. Answer Yes only if both are clearly worn. "
-    "a high-visibility vest. Answer Yes only if both are clearly worn. "
+    "high-visibility vest. Answer Yes only if both are clearly worn. "
+    "Answer No if either is missing, worn incorrectly, or if you are unsure. "
 )
 
 _GEAR_USER = "Is the worker wearing all required safety gear? Answer Yes or No only."
@@ -36,7 +36,7 @@ _CUSTOM_SYSTEM = (
 _settings = {
     "model":                    "qwen3-vl:2b-cli",
     "num_predict":              512,
-    "max_image_size":           480,
+    "max_image_size":           640,
     "frame_interval":           2.0,
     "job_timeout_seconds":      120,
     "frame_timeout_seconds":    30,

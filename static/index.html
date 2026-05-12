@@ -22,8 +22,9 @@
 
     <!-- ═══════════════════════════════ TOP NAV ══════════════════════════════ -->
     <nav id="top-nav">
-      <div class="logo">
+      <div class="logo" style="display:flex; align-items:center; gap:8px;">
         <img src="/static/images/Robomy_Logo.png" alt="Robomy" style="height:28px; width:auto; display:block;">
+        <img src="/static/images/mysti_logo.png" alt="Mysti" style="height:28px; width:auto; display:block;">
       </div>
 
       <div id="nav-tabs">
@@ -41,7 +42,7 @@
         </button>
         <button class="nav-tab" data-tab="custom">
           <i data-lucide="terminal"></i>
-          Custom Prompt
+          Custom Scene/Object
         </button>
         <button class="nav-tab settings-tab" data-tab="settings">
           <i data-lucide="settings-2"></i>
@@ -64,39 +65,86 @@
     <!-- ═══════════════════════════ HOME TAB ════════════════════════════════ -->
     <div id="tab-home" class="tab-page">
       <div class="home-wrap">
-        <div class="home-inner">
 
-          <div style="text-align:center; margin-bottom:16px;">
-            <img src="/static/images/Robomy_Logo.png" alt="Robomy" style="height:48px; width:auto;">
+        <!-- Hero -->
+        <div class="home-hero">
+          <div class="home-scan-bg">
+            <div class="home-scan-ring home-scan-ring-1"></div>
+            <div class="home-scan-ring home-scan-ring-2"></div>
+            <div class="home-scan-ring home-scan-ring-3"></div>
+            <div class="home-scan-sweep"></div>
           </div>
-
-          <div class="home-tagline">Construction Site Safety — Live Vision Monitoring</div>
-
-          <div class="home-divider"></div>
-
-          <div class="home-status-row">
-            <i data-lucide="video"></i>
-            <span class="home-status-label">Camera</span>
-            <span class="home-status-val" id="home-camera-val">—</span>
+          <div class="home-hero-inner">
+            <div class="home-logos">
+              <img src="/static/images/Robomy_Logo.png" alt="Robomy" style="height:52px; width:auto;">
+              <div class="home-logo-sep"></div>
+              <img src="/static/images/mysti_logo.png" alt="Mysti" style="height:52px; width:auto;">
+            </div>
+            <div class="home-title">Construction Site Safety</div>
+            <div class="home-subtitle">Live Vision Monitoring &nbsp;·&nbsp; On-Device AI</div>
           </div>
-          <div class="home-status-row">
-            <i data-lucide="cpu"></i>
-            <span class="home-status-label">VLM Server</span>
-            <span class="home-status-val" id="home-vlm-val">—</span>
-          </div>
-          <div class="home-status-row">
-            <i data-lucide="timer"></i>
-            <span class="home-status-label">Latency</span>
-            <span class="home-status-val" id="home-latency-val">—</span>
-          </div>
-
-          <div class="home-divider"></div>
-
-          <p class="home-desc">Robomy monitors your construction site in real time using an on-device vision model running on the Jetson Orin Nano. Select a monitoring mode from the tabs above to begin.<br><br>Gear Validation checks that workers are wearing required PPE — helmet and high-visibility vest — and flags any missing equipment.<br><br>Weapon Detection scans for knives, firearms, or other dangerous objects and raises an alert if a threat is visible.<br><br>Custom Prompt lets you define your own detection question for any other site-specific safety check.</p>
-
-          <div class="home-footer">Model: Qwen3-VL-2B · Inference: llama-server:8080 · Camera: /dev/video0</div>
-
         </div>
+
+        <!-- Status strip -->
+        <div class="home-status-strip">
+          <div class="home-stat-tile">
+            <div class="home-stat-icon"><i data-lucide="video"></i></div>
+            <div class="home-stat-body">
+              <div class="home-stat-label">Camera</div>
+              <span class="home-status-val" id="home-camera-val">—</span>
+            </div>
+          </div>
+          <div class="home-stat-sep"></div>
+          <div class="home-stat-tile">
+            <div class="home-stat-icon"><i data-lucide="cpu"></i></div>
+            <div class="home-stat-body">
+              <div class="home-stat-label">VLM Server</div>
+              <span class="home-status-val" id="home-vlm-val">—</span>
+            </div>
+          </div>
+          <div class="home-stat-sep"></div>
+          <div class="home-stat-tile">
+            <div class="home-stat-icon"><i data-lucide="timer"></i></div>
+            <div class="home-stat-body">
+              <div class="home-stat-label">Latency</div>
+              <span class="home-status-val" id="home-latency-val">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Use-case launch cards -->
+        <div class="home-uc-grid">
+          <div class="home-uc-card home-uc-gear" onclick="switchTab('gear')">
+            <div class="home-uc-icon"><i data-lucide="hard-hat"></i></div>
+            <div class="home-uc-name">Gear Validation</div>
+            <div class="home-uc-desc">PPE compliance — helmet &amp; hi-vis vest detection on live camera feed.</div>
+            <div class="home-uc-launch">Launch <i data-lucide="arrow-right"></i></div>
+          </div>
+          <div class="home-uc-card home-uc-weapon" onclick="switchTab('weapon')">
+            <div class="home-uc-icon"><i data-lucide="shield-alert"></i></div>
+            <div class="home-uc-name">Weapon Detection</div>
+            <div class="home-uc-desc">Threat scanning — knives, firearms, and dangerous objects.</div>
+            <div class="home-uc-launch">Launch <i data-lucide="arrow-right"></i></div>
+          </div>
+          <div class="home-uc-card home-uc-custom" onclick="switchTab('custom')">
+            <div class="home-uc-icon"><i data-lucide="terminal"></i></div>
+            <div class="home-uc-name">Custom Scene/Object</div>
+            <div class="home-uc-desc">Define any detection question for site-specific safety checks.</div>
+            <div class="home-uc-launch">Launch <i data-lucide="arrow-right"></i></div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="home-footer">
+          <span>Qwen3-VL-2B</span>
+          <span class="home-footer-dot">·</span>
+          <span>llama-server:8080</span>
+          <span class="home-footer-dot">·</span>
+          <span>/dev/video0</span>
+          <span class="home-footer-dot">·</span>
+          <span>Jetson Orin Nano 8GB</span>
+        </div>
+
       </div>
     </div>
 
@@ -107,8 +155,9 @@
       <div class="uc-prompt-screen" id="gear-prompt-screen"
         style="background-image: url('/static/images/gear_backgorund.png'); background-size: cover; background-position: center;">
         <div class="uc-card">
-          <div class="logo"><img src="/static/images/Robomy_Logo.png" alt="Robomy"
-              style="height:28px; width:auto; display:block;"></div>
+          <div class="logo" style="display:flex; align-items:center; gap:8px;"><img src="/static/images/Robomy_Logo.png"
+              alt="Robomy" style="height:28px; width:auto; display:block;"><img src="/static/images/mysti_logo.png"
+              alt="Mysti" style="height:28px; width:auto; display:block;"></div>
 
           <div class="uc-header">
             <div class="uc-badge gear-badge">
@@ -184,8 +233,9 @@
       <div class="uc-prompt-screen" id="weapon-prompt-screen"
         style="background-image: url('/static/images/weapons_background.png'); background-size: cover; background-position: center;">
         <div class="uc-card">
-          <div class="logo"><img src="/static/images/Robomy_Logo.png" alt="Robomy"
-              style="height:28px; width:auto; display:block;"></div>
+          <div class="logo" style="display:flex; align-items:center; gap:8px;"><img src="/static/images/Robomy_Logo.png"
+              alt="Robomy" style="height:28px; width:auto; display:block;"><img src="/static/images/mysti_logo.png"
+              alt="Mysti" style="height:28px; width:auto; display:block;"></div>
 
           <div class="uc-header">
             <div class="uc-badge weapon-badge">
@@ -257,17 +307,19 @@
     <!-- ═══════════════════════════ CUSTOM TAB ══════════════════════════════ -->
     <div id="tab-custom" class="tab-page hidden">
 
-      <div class="uc-prompt-screen" id="custom-prompt-screen">
+      <div class="uc-prompt-screen" id="custom-prompt-screen"
+        style="background-image: url('/static/images/custom_scene_background.png'); background-size: cover; background-position: center;">
         <div class="uc-card">
-          <div class="logo"><img src="/static/images/Robomy_Logo.png" alt="Robomy"
-              style="height:28px; width:auto; display:block;"></div>
+          <div class="logo" style="display:flex; align-items:center; gap:8px;"><img src="/static/images/Robomy_Logo.png"
+              alt="Robomy" style="height:28px; width:auto; display:block;"><img src="/static/images/mysti_logo.png"
+              alt="Mysti" style="height:28px; width:auto; display:block;"></div>
 
           <div class="uc-header">
             <div class="uc-badge custom-badge">
-              <i data-lucide="terminal"></i> Custom Prompt
+              <i data-lucide="terminal"></i> Custom Scene/Object
             </div>
             <div class="uc-title">Free Analysis</div>
-            <div class="uc-desc">Enter any question or instruction for the vision model.</div>
+            <div class="uc-desc">Enter any object name or instruction for the vision model.</div>
           </div>
 
           <textarea class="prompt-textarea" id="custom-prompt-input"
@@ -340,8 +392,8 @@
                 <label class="field-label" for="s-image-size">Image Size</label>
                 <select class="field-control" id="s-image-size">
                   <option value="320">320 px</option>
-                  <option value="480" selected>480 px (default)</option>
-                  <option value="640">640 px</option>
+                  <option value="480">480 px</option>
+                  <option value="640" selected>640 px (default)</option>
                 </select>
                 <span class="field-helper">Larger = more accurate, slower</span>
               </div>
@@ -437,7 +489,7 @@
           <!-- Custom system prompt -->
           <div class="settings-section">
             <div class="settings-section-header custom-header">
-              <i data-lucide="terminal"></i> Custom Prompt — Default System Prompt
+              <i data-lucide="terminal"></i> Custom Scene/Object — Default System Prompt
             </div>
             <div class="settings-grid-full">
               <div class="settings-field">

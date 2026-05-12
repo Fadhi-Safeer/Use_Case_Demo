@@ -4,7 +4,7 @@
 
 const DEFAULTS = {
   num_predict:           512,
-  max_image_size:        480,
+  max_image_size:        640,
   frame_interval:        2.0,
   job_timeout_seconds:   120,
   frame_timeout_seconds: 30,
@@ -234,7 +234,7 @@ function clearResults(useCase) {
 
 function loadSettingsIntoForm(data) {
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-  set('s-image-size',    data.max_image_size    || 480);
+  set('s-image-size',    data.max_image_size    || 640);
   set('s-num-predict',   data.num_predict       || 512);
   set('s-interval',      data.frame_interval    || 2);
   set('s-job-timeout',   data.job_timeout_seconds   || 120);
