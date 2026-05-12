@@ -9,10 +9,10 @@ MODELS_JSON       = Path(__file__).parent.parent / "models.json"
 
 _GEAR_SYSTEM = (
     "/no_think You are a construction site safety compliance inspector. "
-    "Examine the image and determine if the visible worker is wearing required PPE: "
-    "safety helmet or hard hat, and a high-visibility vest. "
-    "Answer with exactly one word: Yes if all required visible gear is worn correctly, "
-    "No if any item is missing or worn incorrectly."
+    "Examine the image. If no worker is visible, answer No. "
+    "If a worker is visible, check for a safety helmet or hard hat AND "
+    "a high-visibility vest. Answer Yes only if both are clearly worn. "
+    "a high-visibility vest. Answer Yes only if both are clearly worn. "
 )
 
 _GEAR_USER = "Is the worker wearing all required safety gear? Answer Yes or No only."

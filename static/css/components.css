@@ -26,13 +26,13 @@
 
 .uc-title {
   font-family: var(--font-logo);
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
   color: #fff;
   letter-spacing: 0.5px;
 }
 .uc-desc {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--text3);
   font-family: var(--font-mono);
   line-height: 1.5;
@@ -58,7 +58,7 @@
 }
 
 .preview-text {
-  font-size: 11px;
+  font-size: 13px;
   font-family: var(--font-mono);
   color: var(--text2);
   line-height: 1.5;
@@ -112,10 +112,10 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  padding: 12px;
-  border-radius: var(--radius);
+  padding: 14px;
+  border-radius: 8px;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 15px;
   letter-spacing: 0.3px;
   transition: opacity 0.15s, transform 0.1s;
   position: relative;
@@ -133,7 +133,7 @@
 .start-btn:active { transform: scale(0.99); }
 .start-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .start-btn:disabled::before { display: none; }
-.start-btn svg { width: 16px; height: 16px; stroke-width: 2; }
+.start-btn svg { width: 18px; height: 18px; stroke-width: 2; }
 
 .gear-start-btn   { background: var(--gear-grad);   color: #000; }
 .weapon-start-btn { background: var(--weapon-grad); color: #fff; }
@@ -144,12 +144,12 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 13px;
+  padding: 7px 16px;
   border-radius: var(--radius);
   border: 1px solid var(--weapon2);
   background: var(--weapon-dim);
   color: var(--weapon2);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   font-family: var(--font-mono);
   transition: background 0.15s;
@@ -186,8 +186,8 @@
   color: var(--text3);
   border-radius: var(--radius-sm);
   font-family: var(--font-mono);
-  font-size: 10px;
-  padding: 4px 8px;
+  font-size: 11px;
+  padding: 5px 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -231,8 +231,8 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px 12px 12px;
+  gap: 10px;
+  padding: 12px;
 }
 
 /* ── Empty state ──────────────────────────────────────────── */
@@ -270,10 +270,12 @@
 .result-card.pass {
   border-left-color: var(--pass);
   background: var(--pass-grad), var(--bg2);
+  box-shadow: 0 2px 12px rgba(57,255,138,0.06);
 }
 .result-card.fail {
   border-left-color: var(--fail);
   background: var(--fail-grad), var(--bg2);
+  box-shadow: 0 2px 12px rgba(255,69,69,0.06);
 }
 .result-card.error {
   border-left-color: var(--weapon2);
@@ -284,12 +286,12 @@
 
 .card-top {
   display: flex;
-  gap: 10px;
-  padding: 10px 12px 8px;
+  gap: 14px;
+  padding: 14px 12px 8px;
 }
 
 .card-thumb {
-  width: 96px; height: 64px;
+  width: 108px; height: 72px;
   object-fit: cover;
   border-radius: var(--radius-sm);
   flex-shrink: 0;
@@ -297,7 +299,7 @@
   border: 1px solid var(--border2);
 }
 .card-thumb-ph {
-  width: 96px; height: 64px;
+  width: 108px; height: 72px;
   border-radius: var(--radius-sm);
   flex-shrink: 0;
   background: var(--bg3);
@@ -306,7 +308,7 @@
   align-items: center;
   justify-content: center;
   color: var(--text3);
-  font-size: 9px;
+  font-size: 11px;
   font-family: var(--font-mono);
 }
 
@@ -324,11 +326,11 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   font-family: var(--font-mono);
   letter-spacing: 1.2px;
-  padding: 2px 8px;
+  padding: 3px 10px;
   border-radius: 8px;
 }
 .result-state-badge.badge-pass {
@@ -346,11 +348,11 @@
   background: var(--bg3);
   border: 1px solid var(--border2);
 }
-.result-state-badge svg { width: 9px; height: 9px; stroke-width: 2.5; }
+.result-state-badge svg { width: 11px; height: 11px; stroke-width: 2.5; }
 
 /* Generic small tag */
 .ctag {
-  font-size: 9px;
+  font-size: 11px;
   font-family: var(--font-mono);
   padding: 1px 6px;
   border-radius: 8px;
@@ -360,9 +362,9 @@
 }
 .ctag-amber { color: var(--amber); border-color: var(--amber-border); background: var(--amber-dim); }
 
-.card-body { padding: 0 12px 10px; }
+.card-body { padding: 0 12px 14px; }
 .card-result {
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.7;
   color: var(--text);
   white-space: pre-wrap;
@@ -379,8 +381,8 @@
   background: var(--gear-grad);
   color: #000;
   font-weight: 700;
-  font-size: 12px;
-  padding: 8px 20px;
+  font-size: 13px;
+  padding: 10px 28px;
   border-radius: var(--radius);
   font-family: var(--font-mono);
   letter-spacing: 0.3px;
@@ -392,8 +394,8 @@
   background: transparent;
   border: 1px solid var(--border2);
   color: var(--text2);
-  font-size: 12px;
-  padding: 8px 16px;
+  font-size: 13px;
+  padding: 10px 20px;
   border-radius: var(--radius);
   font-family: var(--font-mono);
   transition: all 0.15s;
@@ -421,4 +423,83 @@
 #settings-toast.show {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* ── Home page ────────────────────────────────────────────── */
+
+.home-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 32px 20px;
+}
+
+.home-inner {
+  max-width: 560px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.home-tagline {
+  font-family: var(--font-logo);
+  font-size: 20px;
+  color: var(--text2);
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+.home-divider {
+  height: 1px;
+  background: var(--border2);
+  margin: 28px 0;
+}
+
+.home-status-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.home-status-row svg {
+  width: 14px;
+  height: 14px;
+  color: var(--text3);
+  flex-shrink: 0;
+}
+
+.home-status-label {
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 10px;
+  flex-shrink: 0;
+  width: 110px;
+}
+
+.home-status-val          { color: var(--text); }
+.home-status-val.online   { color: var(--gear2); }
+.home-status-val.offline  { color: var(--weapon2); }
+
+.home-desc {
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 1.8;
+  white-space: pre-line;
+  font-family: var(--font-ui);
+}
+
+.home-footer {
+  color: var(--text3);
+  font-size: 11px;
+  font-family: var(--font-mono);
+  text-align: center;
+  margin-top: 28px;
 }

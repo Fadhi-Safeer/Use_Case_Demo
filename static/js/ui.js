@@ -65,6 +65,13 @@ async function pollLoop() {
     if (procDot)  procDot.className  = 'status-dot ' + (busy ? 'busy' : 'idle');
     if (procText) procText.textContent = busy ? 'Analyzing…' : 'Idle';
 
+    let homeHist = null;
+    if (state.activeTab === 'home') {
+      const h = await fetchHistory();
+      homeHist = h.jobs || [];
+    }
+    updateHomePage(s, homeHist);
+
   } catch (_) { /* network hiccup */ }
 
   setTimeout(pollLoop, 1000);
@@ -288,6 +295,34 @@ function showToast() {
 }
 
 
+// ── Home page update ──────────────────────────────────────────────────────────
+
+function updateHomePage(statusData, historyJobs) {
+  const camEl = document.getElementById('home-camera-val');
+  if (camEl) {
+    const ok = statusData.camera_ok;
+    camEl.textContent = ok ? 'Online' : 'Offline';
+    camEl.className   = 'home-status-val ' + (ok ? 'online' : 'offline');
+  }
+
+  if (historyJobs) {
+    const vlmEl = document.getElementById('home-vlm-val');
+    if (vlmEl) {
+      const hasError = historyJobs.some(j => j.result && j.result.startsWith('[ERROR]'));
+      vlmEl.textContent = hasError ? 'Unreachable' : 'Online';
+      vlmEl.className   = 'home-status-val ' + (hasError ? 'offline' : 'online');
+    }
+
+    const latEl = document.getElementById('home-latency-val');
+    if (latEl) {
+      const done = historyJobs.filter(j => j.status === 'done' && j.elapsed != null);
+      const last = done.length ? done[done.length - 1] : null;
+      latEl.textContent = last ? `${last.elapsed} s` : '—';
+    }
+  }
+}
+
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 function init() {
@@ -329,6 +364,7 @@ function init() {
     navigator.sendBeacon('/stop_live', '{}');
   });
 
+  state.activeTab = 'home';
   pollLoop();
   lucide.createIcons();
 }
