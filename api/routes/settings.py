@@ -6,20 +6,45 @@ from api.camera import CAMERA_DEVICE
 
 router = APIRouter()
 
-ALLOWED_KEYS = {"model", "num_predict", "max_image_size", "system_prompt"}
+ALLOWED_KEYS = {
+    "model",
+    "num_predict",
+    "max_image_size",
+    "frame_interval",
+    "job_timeout_seconds",
+    "frame_timeout_seconds",
+    "max_queue_size",
+    "show_duplicate_results",
+    "gear_system_prompt",
+    "gear_user_prompt",
+    "weapon_system_prompt",
+    "weapon_user_prompt",
+    "custom_system_prompt",
+}
+
+
+def _current_settings():
+    return {
+        "model":                 cfg("model"),
+        "num_predict":           cfg("num_predict"),
+        "max_image_size":        cfg("max_image_size"),
+        "frame_interval":        cfg("frame_interval"),
+        "job_timeout_seconds":   cfg("job_timeout_seconds"),
+        "frame_timeout_seconds": cfg("frame_timeout_seconds"),
+        "max_queue_size":        cfg("max_queue_size"),
+        "show_duplicate_results": cfg("show_duplicate_results"),
+        "gear_system_prompt":    cfg("gear_system_prompt"),
+        "gear_user_prompt":      cfg("gear_user_prompt"),
+        "weapon_system_prompt":  cfg("weapon_system_prompt"),
+        "weapon_user_prompt":    cfg("weapon_user_prompt"),
+        "custom_system_prompt":  cfg("custom_system_prompt"),
+        "camera_device":         CAMERA_DEVICE,
+    }
 
 
 @router.get("/settings")
 def get_settings():
-    return JSONResponse(
-        {
-            "model": cfg("model"),
-            "num_predict": cfg("num_predict"),
-            "max_image_size": cfg("max_image_size"),
-            "system_prompt": cfg("system_prompt"),
-            "camera_device": CAMERA_DEVICE,
-        }
-    )
+    return JSONResponse(_current_settings())
 
 
 @router.post("/settings")
@@ -27,12 +52,4 @@ async def post_settings(data: dict):
     for key, value in data.items():
         if key in ALLOWED_KEYS:
             update_cfg(key, value)
-    return JSONResponse(
-        {
-            "model": cfg("model"),
-            "num_predict": cfg("num_predict"),
-            "max_image_size": cfg("max_image_size"),
-            "system_prompt": cfg("system_prompt"),
-            "camera_device": CAMERA_DEVICE,
-        }
-    )
+    return JSONResponse(_current_settings())

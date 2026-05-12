@@ -1,32 +1,69 @@
 :root {
-  --bg0: #080b10;
-  --bg1: #0d1117;
-  --bg2: #111720;
-  --bg3: #1a2332;
-  --border: #1a2332;
-  --border2: #243044;
+  /* ── Backgrounds ───────────────────────────────── */
+  --bg0:    #060a10;
+  --bg1:    #090e18;
+  --bg2:    #0e1520;
+  --bg3:    #152030;
+  --border: #1a2535;
+  --border2:#243448;
 
-  --text: #c9d1de;
-  --text2: #6b7a8d;
-  --text3: #3d4f63;
+  /* ── Text ──────────────────────────────────────── */
+  --text:   #c5cdd9;
+  --text2:  #68788d;
+  --text3:  #384f65;
 
-  --green: #39ff8a;
-  --green2: #20c060;
-  --green-dim: #0a2e1a;
-  --amber: #f59e0b;
-  --amber-dim: #2a1a00;
-  --red: #ef4444;
-  --red-dim: #2a0a0a;
-  --blue: #3b82f6;
-  --blue-dim: #0d1f40;
+  /* ── Gear (green) ──────────────────────────────── */
+  --gear:        #39ff8a;
+  --gear2:       #20c060;
+  --gear-dim:    rgba(32, 192, 96, 0.07);
+  --gear-border: rgba(57, 255, 138, 0.30);
+  --gear-glow:   rgba(57, 255, 138, 0.18);
+  --gear-grad:   linear-gradient(135deg, #39ff8a 0%, #20c060 100%);
+  --gear-grad-h: linear-gradient(90deg,  #39ff8a 0%, #20c060 100%);
 
-  --radius: 6px;
+  /* ── Weapon (red) ──────────────────────────────── */
+  --weapon:        #ff4545;
+  --weapon2:       #ef4444;
+  --weapon-dim:    rgba(239, 68, 68, 0.07);
+  --weapon-border: rgba(255, 69, 69, 0.30);
+  --weapon-glow:   rgba(255, 69, 69, 0.18);
+  --weapon-grad:   linear-gradient(135deg, #ff6b6b 0%, #ef4444 100%);
+  --weapon-grad-h: linear-gradient(90deg,  #ff6b6b 0%, #ef4444 100%);
+
+  /* ── Custom (violet-blue) ──────────────────────── */
+  --custom:        #a78bfa;
+  --custom2:       #7c3aed;
+  --custom-dim:    rgba(167, 139, 250, 0.07);
+  --custom-border: rgba(167, 139, 250, 0.30);
+  --custom-glow:   rgba(167, 139, 250, 0.18);
+  --custom-grad:   linear-gradient(135deg, #a78bfa 0%, #3b82f6 100%);
+  --custom-grad-h: linear-gradient(90deg,  #a78bfa 0%, #3b82f6 100%);
+
+  /* ── Result states ─────────────────────────────── */
+  --pass:        #39ff8a;
+  --pass2:       #20c060;
+  --pass-dim:    rgba(57, 255, 138, 0.06);
+  --pass-border: rgba(57, 255, 138, 0.28);
+  --pass-grad:   linear-gradient(135deg, rgba(57,255,138,0.10) 0%, rgba(32,192,96,0.02) 70%);
+
+  --fail:        #ff4545;
+  --fail2:       #ef4444;
+  --fail-dim:    rgba(255, 69, 69, 0.06);
+  --fail-border: rgba(255, 69, 69, 0.28);
+  --fail-grad:   linear-gradient(135deg, rgba(255,69,69,0.10) 0%, rgba(239,68,68,0.02) 70%);
+
+  --amber:     #f59e0b;
+  --amber-dim: rgba(245, 158, 11, 0.07);
+  --amber-border: rgba(245, 158, 11, 0.28);
+
+  /* ── Misc ──────────────────────────────────────── */
+  --radius:    6px;
   --radius-sm: 4px;
+  --radius-lg: 10px;
 
-  --font-ui: 'Inter', system-ui, sans-serif;
+  --font-ui:   'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --font-logo: 'Rajdhani', sans-serif;
 
-  --glow: rgba(32, 192, 96, 0.35);
-  --glass: rgba(13, 17, 23, 0.85);
+  --nav-h: 52px;
 }

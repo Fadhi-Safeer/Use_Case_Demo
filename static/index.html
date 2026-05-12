@@ -1,15 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Robomy Live VLM</title>
+  <title>Robomy — Site Safety</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@600;700&display=swap"
-    rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <link rel="stylesheet" href="/static/css/variables.css">
   <link rel="stylesheet" href="/static/css/base.css">
@@ -17,144 +13,403 @@
   <link rel="stylesheet" href="/static/css/components.css">
   <link rel="stylesheet" href="/static/css/camera.css">
 </head>
-
 <body>
-  <div id="app">
+<div id="app">
 
-    <!-- SCREEN 1: Prompt entry (shown on load) -->
-    <div id="prompt-screen">
-      <div id="prompt-card">
-        <button id="prompt-settings-btn">⚙</button>
-        <div id="prompt-settings-panel">
-          <div class="ps-row">
-            <span class="ps-label">Image size</span>
-            <select id="ps-image-size" class="ps-control">
-              <option value="320">320 px</option>
-              <option value="480" selected>480 px — default</option>
-              <option value="640">640 px</option>
-            </select>
-            <span class="ps-helper">Larger = more accurate, slower</span>
+  <!-- ═══════════════════════════════ TOP NAV ══════════════════════════════ -->
+  <nav id="top-nav">
+    <div class="logo">
+      <div class="logo-dot"></div>
+      ROBOMY
+    </div>
+
+    <div id="nav-tabs">
+      <button class="nav-tab active" data-tab="gear">
+        <i data-lucide="hard-hat"></i>
+        Gear Validation
+      </button>
+      <button class="nav-tab" data-tab="weapon">
+        <i data-lucide="shield-alert"></i>
+        Weapon Detection
+      </button>
+      <button class="nav-tab" data-tab="custom">
+        <i data-lucide="terminal"></i>
+        Custom Prompt
+      </button>
+      <button class="nav-tab settings-tab" data-tab="settings">
+        <i data-lucide="settings-2"></i>
+        Settings
+      </button>
+    </div>
+
+    <div id="nav-status">
+      <div class="status-pill">
+        <div class="status-dot cam-err" id="cam-dot"></div>
+        <span id="cam-text">Camera</span>
+      </div>
+      <div class="status-pill">
+        <div class="status-dot idle" id="proc-dot"></div>
+        <span id="proc-text">Idle</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════ GEAR TAB ════════════════════════════════ -->
+  <div id="tab-gear" class="tab-page">
+
+    <!-- Prompt screen -->
+    <div class="uc-prompt-screen" id="gear-prompt-screen">
+      <div class="uc-card">
+        <div class="logo"><div class="logo-dot"></div>ROBOMY</div>
+
+        <div class="uc-header">
+          <div class="uc-badge gear-badge">
+            <i data-lucide="hard-hat"></i> Gear Validation
           </div>
-          <div class="ps-row">
-            <span class="ps-label">Max tokens</span>
-            <input type="number" id="ps-num-predict" class="ps-control" value="512" min="500" max="1024" step="50">
-            <span class="ps-helper">Min 500 — Qwen3 returns empty below this</span>
-          </div>
-          <div class="ps-row">
-            <span class="ps-label">Capture interval</span>
-            <select id="ps-interval" class="ps-control">
-              <option value="3" selected>3s — default</option>
-              <option value="5">5s</option>
-              <option value="10">10s</option>
-            </select>
-            <span class="ps-helper">How often the model analyzes a new frame</span>
-          </div>
-          <div class="ps-row ps-row-full">
-            <span class="ps-label">System prompt</span>
-            <textarea id="ps-system-prompt" class="ps-control ps-textarea" rows="3"></textarea>
-            <span class="ps-helper">Instructs the model how to behave. Changes take effect on next session.</span>
-          </div>
-          <button id="ps-reset-btn">Reset to defaults</button>
+          <div class="uc-title">PPE Compliance</div>
+          <div class="uc-desc">Detects missing safety helmets and high-visibility vests on workers.</div>
         </div>
 
-        <div class="logo">
-          <div class="logo-dot"></div>
-          Robomy Live VLM
-        </div>
-        <div id="prompt-subtitle">Real-time vision analysis on Jetson Orin Nano</div>
-
-        <div id="preset-row">
-          <button class="preset-btn" id="preset-describe"><i data-lucide="eye"></i> Describe</button>
-          <button class="preset-btn" id="preset-read"><i data-lucide="scan-text"></i> Read Label</button>
-          <button class="preset-btn" id="preset-count"><i data-lucide="hash"></i> Count</button>
+        <div class="uc-prompt-preview">
+          <div class="preview-label">Detection prompt</div>
+          <div class="preview-text" id="gear-prompt-preview">Loading…</div>
+          <span class="preview-edit-link" onclick="switchTab('settings')">Edit in Settings ↗</span>
         </div>
 
-        <textarea id="prompt-input" placeholder="What should the model look for?"></textarea>
+        <div class="cam-status-line">
+          <div class="status-dot cam-err" id="cam-dot-gear"></div>
+          <span id="cam-text-gear">Checking camera…</span>
+        </div>
 
-        <button id="start-btn">
-          <i data-lucide="radio"></i> Start Live Analysis
+        <button class="start-btn gear-start-btn" id="start-btn-gear">
+          <i data-lucide="shield-check"></i> Start Gear Detection
         </button>
+      </div>
+    </div>
 
-        <div id="cam-status-line">
-          <div class="status-dot cam-err" id="cam-dot-prompt"></div>
-          <span id="cam-text-prompt">Checking camera…</span>
+    <!-- Live screen -->
+    <div class="uc-live-screen hidden" id="gear-live-screen">
+      <div class="live-bar">
+        <div class="uc-badge gear-badge"><i data-lucide="hard-hat"></i> Gear Validation</div>
+        <div class="live-bar-prompt" id="gear-live-prompt"></div>
+        <div class="analyzing-indicator" id="gear-analyzing">
+          <div class="live-pulse-dot"></div> Analyzing…
+        </div>
+        <button class="stop-btn" id="stop-btn-gear">
+          <i data-lucide="square"></i> Stop
+        </button>
+      </div>
+      <div class="live-main">
+        <div class="video-panel" id="video-panel-gear">
+          <img class="feed-img" id="feed-img-gear" alt="Live feed" style="display:none">
+          <div class="feed-offline" id="feed-offline-gear">
+            <i data-lucide="video-off"></i>
+            No camera signal
+          </div>
+          <div class="cam-overlay">
+            <span class="cam-label">/dev/video0</span>
+            <span class="cam-live"><div class="live-dot"></div>LIVE</span>
+          </div>
+        </div>
+        <div class="results-panel">
+          <div class="results-panel-header">
+            <span class="results-panel-label">Results</span>
+            <button class="clear-btn" onclick="clearResults('gear')">
+              <i data-lucide="trash-2"></i> Clear
+            </button>
+          </div>
+          <div class="results-list" id="results-list-gear">
+            <div class="empty-state">Waiting for first inference…</div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- SCREEN 2: Live view (hidden on load, shown after start) -->
-    <div id="live-screen" class="hidden">
+  </div><!-- /tab-gear -->
 
-      <!-- Top header bar -->
-      <header id="header">
-        <div class="logo"><div class="logo-dot"></div>Robomy Live VLM</div>
-        <div id="header-center">
-          <span id="header-prompt-text"></span>
-        </div>
-        <div id="header-right">
-          <div class="status-pill">
-            <div class="status-dot cam-err" id="cam-dot"></div>
-            <i data-lucide="video"></i>
-            <span id="cam-text" style="font-size:10px">Camera</span>
+
+  <!-- ═══════════════════════════ WEAPON TAB ══════════════════════════════ -->
+  <div id="tab-weapon" class="tab-page hidden">
+
+    <div class="uc-prompt-screen" id="weapon-prompt-screen">
+      <div class="uc-card">
+        <div class="logo"><div class="logo-dot"></div>ROBOMY</div>
+
+        <div class="uc-header">
+          <div class="uc-badge weapon-badge">
+            <i data-lucide="shield-alert"></i> Weapon Detection
           </div>
-          <div class="status-pill">
-            <div class="status-dot idle" id="proc-dot"></div>
-            <i data-lucide="activity"></i>
-            <span id="proc-text">Idle</span>
-          </div>
-          <button id="stop-btn"><i data-lucide="square"></i> Stop</button>
+          <div class="uc-title">Threat Scanning</div>
+          <div class="uc-desc">Identifies weapons and dangerous objects in the camera field.</div>
         </div>
-      </header>
 
-      <!-- Two-panel main -->
-      <div id="live-main">
+        <div class="uc-prompt-preview">
+          <div class="preview-label">Detection prompt</div>
+          <div class="preview-text" id="weapon-prompt-preview">Loading…</div>
+          <span class="preview-edit-link" onclick="switchTab('settings')">Edit in Settings ↗</span>
+        </div>
 
-        <!-- Left: video -->
-        <div id="video-panel">
-          <img id="feed-img" alt="Live feed">
-          <div id="feed-offline">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M23 7l-7 5 7 5V7z" />
-              <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
-              <line x1="1" y1="1" x2="23" y2="23" />
-            </svg>
+        <div class="cam-status-line">
+          <div class="status-dot cam-err" id="cam-dot-weapon"></div>
+          <span id="cam-text-weapon">Checking camera…</span>
+        </div>
+
+        <button class="start-btn weapon-start-btn" id="start-btn-weapon">
+          <i data-lucide="scan-search"></i> Start Weapon Scan
+        </button>
+      </div>
+    </div>
+
+    <div class="uc-live-screen hidden" id="weapon-live-screen">
+      <div class="live-bar">
+        <div class="uc-badge weapon-badge"><i data-lucide="shield-alert"></i> Weapon Detection</div>
+        <div class="live-bar-prompt" id="weapon-live-prompt"></div>
+        <div class="analyzing-indicator" id="weapon-analyzing">
+          <div class="live-pulse-dot"></div> Analyzing…
+        </div>
+        <button class="stop-btn" id="stop-btn-weapon">
+          <i data-lucide="square"></i> Stop
+        </button>
+      </div>
+      <div class="live-main">
+        <div class="video-panel" id="video-panel-weapon">
+          <img class="feed-img" id="feed-img-weapon" alt="Live feed" style="display:none">
+          <div class="feed-offline" id="feed-offline-weapon">
+            <i data-lucide="video-off"></i>
             No camera signal
           </div>
-          <div id="cam-overlay">
+          <div class="cam-overlay">
             <span class="cam-label">/dev/video0</span>
-            <span class="cam-live">
-              <div class="live-dot"></div>LIVE
-            </span>
+            <span class="cam-live"><div class="live-dot"></div>LIVE</span>
           </div>
         </div>
-
-        <!-- Right: results -->
-        <div id="results-panel">
-          <div id="results-panel-header">
-            <span id="active-prompt-label"></span>
-            <div id="analyzing-indicator" style="display:none">
-              <div class="live-pulse-dot"></div>
-              <span>Analyzing&hellip;</span>
-            </div>
-            <button id="clear-results-btn" onclick="clearLiveResults()">
+        <div class="results-panel">
+          <div class="results-panel-header">
+            <span class="results-panel-label">Results</span>
+            <button class="clear-btn" onclick="clearResults('weapon')">
               <i data-lucide="trash-2"></i> Clear
             </button>
           </div>
-          <div id="results-list">
-            <div id="empty-state">Waiting for first inference…</div>
+          <div class="results-list" id="results-list-weapon">
+            <div class="empty-state">Waiting for first inference…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tab-weapon -->
+
+
+  <!-- ═══════════════════════════ CUSTOM TAB ══════════════════════════════ -->
+  <div id="tab-custom" class="tab-page hidden">
+
+    <div class="uc-prompt-screen" id="custom-prompt-screen">
+      <div class="uc-card">
+        <div class="logo"><div class="logo-dot"></div>ROBOMY</div>
+
+        <div class="uc-header">
+          <div class="uc-badge custom-badge">
+            <i data-lucide="terminal"></i> Custom Prompt
+          </div>
+          <div class="uc-title">Free Analysis</div>
+          <div class="uc-desc">Enter any question or instruction for the vision model.</div>
+        </div>
+
+        <textarea
+          class="prompt-textarea"
+          id="custom-prompt-input"
+          placeholder="What should the model look for? (Yes/No questions work best for coloured results)"
+        ></textarea>
+
+        <div class="cam-status-line">
+          <div class="status-dot cam-err" id="cam-dot-custom"></div>
+          <span id="cam-text-custom">Checking camera…</span>
+        </div>
+
+        <button class="start-btn custom-start-btn" id="start-btn-custom">
+          <i data-lucide="radio"></i> Start Live Analysis
+        </button>
+      </div>
+    </div>
+
+    <div class="uc-live-screen hidden" id="custom-live-screen">
+      <div class="live-bar">
+        <div class="uc-badge custom-badge"><i data-lucide="terminal"></i> Custom</div>
+        <div class="live-bar-prompt" id="custom-live-prompt"></div>
+        <div class="analyzing-indicator" id="custom-analyzing">
+          <div class="live-pulse-dot"></div> Analyzing…
+        </div>
+        <button class="stop-btn" id="stop-btn-custom">
+          <i data-lucide="square"></i> Stop
+        </button>
+      </div>
+      <div class="live-main">
+        <div class="video-panel" id="video-panel-custom">
+          <img class="feed-img" id="feed-img-custom" alt="Live feed" style="display:none">
+          <div class="feed-offline" id="feed-offline-custom">
+            <i data-lucide="video-off"></i>
+            No camera signal
+          </div>
+          <div class="cam-overlay">
+            <span class="cam-label">/dev/video0</span>
+            <span class="cam-live"><div class="live-dot"></div>LIVE</span>
+          </div>
+        </div>
+        <div class="results-panel">
+          <div class="results-panel-header">
+            <span class="results-panel-label">Results</span>
+            <button class="clear-btn" onclick="clearResults('custom')">
+              <i data-lucide="trash-2"></i> Clear
+            </button>
+          </div>
+          <div class="results-list" id="results-list-custom">
+            <div class="empty-state">Waiting for first inference…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tab-custom -->
+
+
+  <!-- ═══════════════════════════ SETTINGS TAB ════════════════════════════ -->
+  <div id="tab-settings" class="tab-page hidden">
+    <div class="tab-page-inner" style="flex:1;overflow-y:auto;padding:24px;">
+      <div class="settings-page">
+
+        <!-- General -->
+        <div class="settings-section">
+          <div class="settings-section-header">General Settings</div>
+          <div class="settings-grid">
+
+            <div class="settings-field">
+              <label class="field-label" for="s-image-size">Image Size</label>
+              <select class="field-control" id="s-image-size">
+                <option value="320">320 px</option>
+                <option value="480" selected>480 px (default)</option>
+                <option value="640">640 px</option>
+              </select>
+              <span class="field-helper">Larger = more accurate, slower</span>
+            </div>
+
+            <div class="settings-field">
+              <label class="field-label" for="s-num-predict">Max Tokens</label>
+              <input type="number" class="field-control" id="s-num-predict" value="512" min="64" max="2048" step="64">
+              <span class="field-helper">Min 500 recommended for Qwen3</span>
+            </div>
+
+            <div class="settings-field">
+              <label class="field-label" for="s-interval">Frame Interval (s)</label>
+              <select class="field-control" id="s-interval">
+                <option value="2">2s (default)</option>
+                <option value="3">3s</option>
+                <option value="5">5s</option>
+                <option value="10">10s</option>
+              </select>
+              <span class="field-helper">How often a new frame is analyzed</span>
+            </div>
+
+            <div class="settings-field">
+              <label class="field-label" for="s-job-timeout">Job Timeout (s)</label>
+              <input type="number" class="field-control" id="s-job-timeout" value="120" min="10" max="600" step="10">
+              <span class="field-helper">Max seconds before job is abandoned</span>
+            </div>
+
+            <div class="settings-field">
+              <label class="field-label" for="s-frame-timeout">Frame Timeout (s)</label>
+              <input type="number" class="field-control" id="s-frame-timeout" value="30" min="5" max="120" step="5">
+              <span class="field-helper">Max seconds to wait for a camera frame</span>
+            </div>
+
+            <div class="settings-field">
+              <label class="field-label" for="s-queue-size">Max Queue Size</label>
+              <input type="number" class="field-control" id="s-queue-size" value="50" min="5" max="200" step="5">
+              <span class="field-helper">Max history entries retained</span>
+            </div>
+
+            <div class="settings-field full-width" style="grid-column:1/-1">
+              <label class="field-label">Duplicate Results</label>
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-top:2px;">
+                <input type="checkbox" id="s-show-dupes" style="accent-color:var(--gear2);width:15px;height:15px;">
+                <span style="font-size:12px;font-family:var(--font-mono);color:var(--text2);">
+                  Show card even when result is identical to previous cycle
+                </span>
+              </label>
+              <span class="field-helper">Off (default) — suppresses repeated identical outputs. On — a card appears every cycle regardless.</span>
+            </div>
+
           </div>
         </div>
 
-      </div><!-- /live-main -->
+        <!-- Gear prompts -->
+        <div class="settings-section">
+          <div class="settings-section-header gear-header">
+            <i data-lucide="hard-hat"></i> Gear Validation — Prompts
+          </div>
+          <div class="settings-grid-full">
+            <div class="settings-field">
+              <label class="field-label" for="s-gear-sys">System Prompt</label>
+              <textarea class="field-control field-textarea" id="s-gear-sys" rows="4"></textarea>
+              <span class="field-helper">Instructs the model how to classify PPE compliance</span>
+            </div>
+            <div class="settings-field" style="border-top:1px solid var(--border)">
+              <label class="field-label" for="s-gear-user">User Prompt</label>
+              <textarea class="field-control field-textarea" id="s-gear-user" rows="2"></textarea>
+              <span class="field-helper">Sent with every frame. Should elicit a Yes/No answer.</span>
+            </div>
+          </div>
+        </div>
 
-    </div><!-- /live-screen -->
+        <!-- Weapon prompts -->
+        <div class="settings-section">
+          <div class="settings-section-header weapon-header">
+            <i data-lucide="shield-alert"></i> Weapon Detection — Prompts
+          </div>
+          <div class="settings-grid-full">
+            <div class="settings-field">
+              <label class="field-label" for="s-weapon-sys">System Prompt</label>
+              <textarea class="field-control field-textarea" id="s-weapon-sys" rows="4"></textarea>
+              <span class="field-helper">Instructs the model to look for weapons and threats</span>
+            </div>
+            <div class="settings-field" style="border-top:1px solid var(--border)">
+              <label class="field-label" for="s-weapon-user">User Prompt</label>
+              <textarea class="field-control field-textarea" id="s-weapon-user" rows="2"></textarea>
+              <span class="field-helper">Yes = weapon detected (red). No = safe (green).</span>
+            </div>
+          </div>
+        </div>
 
-  </div><!-- /app -->
+        <!-- Custom system prompt -->
+        <div class="settings-section">
+          <div class="settings-section-header custom-header">
+            <i data-lucide="terminal"></i> Custom Prompt — Default System Prompt
+          </div>
+          <div class="settings-grid-full">
+            <div class="settings-field">
+              <label class="field-label" for="s-custom-sys">System Prompt</label>
+              <textarea class="field-control field-textarea" id="s-custom-sys" rows="3"></textarea>
+              <span class="field-helper">Applied to all custom sessions. User prompt is entered per-session.</span>
+            </div>
+          </div>
+        </div>
 
-  <script src="/static/js/api.js"></script>
-  <script src="/static/js/state.js"></script>
-  <script src="/static/js/render.js"></script>
-  <script src="/static/js/ui.js"></script>
+        <!-- Actions -->
+        <div style="display:flex;gap:10px;padding-bottom:8px;">
+          <button class="btn-save" id="settings-save-btn">Save Settings</button>
+          <button class="btn-reset" id="settings-reset-btn">Reset to Defaults</button>
+        </div>
+
+      </div>
+    </div>
+  </div><!-- /tab-settings -->
+
+</div><!-- /app -->
+
+<div id="settings-toast">✓ Settings saved</div>
+
+<script src="/static/js/api.js"></script>
+<script src="/static/js/state.js"></script>
+<script src="/static/js/render.js"></script>
+<script src="/static/js/ui.js"></script>
 </body>
-
 </html>

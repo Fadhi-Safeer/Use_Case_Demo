@@ -1,9 +1,15 @@
 'use strict';
 
 const state = {
-  activePreset: null,   // button element currently active
-  pendingCards: {},     // job_id → true, for jobs not yet in history
-  liveJobId: null,      // job_id of the current live session
-  lastLiveResult: null, // last result text seen — used to detect new results
-  liveCardCount: 0,     // counts how many cards have been added this session
+  activeTab: 'gear',
+  activeRunningTab: null,   // 'gear' | 'weapon' | 'custom' | null
+
+  tabs: {
+    gear:   { liveJobId: null, lastResult: null, lastTimestamp: null, cardCount: 0 },
+    weapon: { liveJobId: null, lastResult: null, lastTimestamp: null, cardCount: 0 },
+    custom: { liveJobId: null, lastResult: null, lastTimestamp: null, cardCount: 0 },
+  },
+
+  camera: { ok: false },
+  showDuplicates: false,   // mirrors backend show_duplicate_results setting
 };

@@ -1,18 +1,54 @@
 'use strict';
 
 function escHtml(s) {
-  return String(s)
+  return String(s || '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 }
 
-function statusTagClass(status) {
-  return 'ctag ctag-status-' + status;
+/**
+ * Determine pass/fail from a Yes/No result text, respecting use-case polarity.
+ *
+ * Gear   : Yes → PASS (green),  No → FAIL (red)
+ * Weapon : Yes → FAIL (red),    No → PASS (green)   ← inverted
+ * Custom : Yes → PASS (green),  No → FAIL (red)
+ *
+ * @returns {'pass'|'fail'|'unknown'}
+ */
+function parseResultState(resultText, useCase) {
+  if (!resultText) return 'unknown';
+  const t = resultText.toLowerCase().trim();
+  const isYes = t === 'yes' || t.startsWith('yes');
+  const isNo  = t === 'no'  || t.startsWith('no');
+
+  if (!isYes && !isNo) return 'unknown';
+
+  if (useCase === 'weapon') {
+    return isYes ? 'fail' : 'pass';   // weapon present = danger
+  }
+  return isYes ? 'pass' : 'fail';     // gear present = pass; custom yes = pass
 }
 
-function renderCard(job) {
+function resultStateBadge(resultState, useCase) {
+  if (resultState === 'pass') {
+    const label = useCase === 'weapon' ? 'CLEAR' : 'PASS';
+    return `<span class="result-state-badge badge-pass"><i data-lucide="check-circle"></i> ${label}</span>`;
+  }
+  if (resultState === 'fail') {
+    const label = useCase === 'weapon' ? 'THREAT' : 'FAIL';
+    return `<span class="result-state-badge badge-fail"><i data-lucide="x-circle"></i> ${label}</span>`;
+  }
+  return `<span class="result-state-badge badge-unknown">—</span>`;
+}
+
+/**
+ * Render the inner HTML of a result card.
+ * @param {Object} job
+ * @param {string} useCase - 'gear'|'weapon'|'custom'
+ */
+function renderCard(job, useCase) {
   const thumb = job.thumb
     ? `<img class="card-thumb" src="data:image/jpeg;base64,${job.thumb}" alt="frame">`
     : `<div class="card-thumb-ph">${escHtml(job.status)}</div>`;
@@ -21,13 +57,18 @@ function renderCard(job) {
   const ts      = job.timestamp ? `<span class="ctag">${escHtml(job.timestamp)}</span>` : '';
 
   let bodyHtml = '';
-  if (job.status === 'queued') {
-    bodyHtml = `<div class="card-result pending">Waiting in queue…</div>`;
-  } else if (job.status === 'processing') {
+  let stateBadge = '';
+
+  if (job.status === 'queued' || job.status === 'processing') {
     bodyHtml = `<div class="card-result pending">Analyzing…</div>`;
+    stateBadge = `<span class="ctag ctag-amber">${escHtml(job.status)}</span>`;
   } else if (job.status === 'error') {
-    bodyHtml = `<div class="card-result error">${escHtml(job.result || '')}</div>`;
+    bodyHtml = `<div class="card-result error-text">${escHtml(job.result || '')}</div>`;
+    stateBadge = `<span class="result-state-badge badge-fail">ERROR</span>`;
   } else {
+    // Done — determine pass/fail
+    const rs = parseResultState(job.result, useCase);
+    stateBadge = resultStateBadge(rs, useCase);
     bodyHtml = `<div class="card-result">${escHtml(job.result || '')}</div>`;
   }
 
@@ -35,9 +76,8 @@ function renderCard(job) {
     <div class="card-top">
       ${thumb}
       <div class="card-meta">
-        <div class="card-prompt" title="${escHtml(job.prompt)}">${escHtml(job.prompt)}</div>
         <div class="card-tags">
-          <span class="${statusTagClass(job.status)}">${escHtml(job.status)}</span>
+          ${stateBadge}
           ${elapsed}
           ${ts}
         </div>
@@ -46,35 +86,27 @@ function renderCard(job) {
     <div class="card-body">${bodyHtml}</div>`;
 }
 
-function addPendingCard(job_id, prompt) {
-  const empty = document.getElementById('empty-state');
+/**
+ * Compute the CSS class for a completed card (pass/fail/unknown/error/queued/processing).
+ */
+function cardClass(job, useCase) {
+  if (job.status === 'error')   return 'result-card error';
+  if (job.status === 'queued' || job.status === 'processing') return 'result-card processing';
+  const rs = parseResultState(job.result, useCase);
+  return `result-card ${rs}`;
+}
+
+/**
+ * Prepend a new card to a results list.
+ */
+function addCard(listEl, job, useCase) {
+  const empty = listEl.querySelector('.empty-state');
   if (empty) empty.remove();
 
   const card = document.createElement('div');
-  card.className = 'result-card queued';
-  card.id = 'card-' + job_id;
-  card.innerHTML = renderCard({ id: job_id, status: 'queued', prompt, thumb: null, elapsed: null, timestamp: null });
-
-  const list = document.getElementById('results-list');
-  list.insertBefore(card, list.firstChild);
-  state.pendingCards[job_id] = true;
-}
-
-function updateCard(job) {
-  const card = document.getElementById('card-' + job.id);
-  if (!card) return;
-
-  // Save open state of any <details> inside before replacing innerHTML
-  const openDetails = new Set();
-  card.querySelectorAll('details').forEach((d, i) => { if (d.open) openDetails.add(i); });
-
-  card.className = 'result-card ' + job.status;
-  card.innerHTML = renderCard(job);
-
-  // Restore open state
-  card.querySelectorAll('details').forEach((d, i) => { if (openDetails.has(i)) d.open = true; });
-
-  if (job.status === 'done' || job.status === 'error') {
-    delete state.pendingCards[job.id];
-  }
+  card.className = cardClass(job, useCase);
+  card.id = 'card-' + job.id;
+  card.innerHTML = renderCard(job, useCase);
+  listEl.insertBefore(card, listEl.firstChild);
+  lucide.createIcons();
 }

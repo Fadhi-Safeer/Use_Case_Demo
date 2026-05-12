@@ -7,11 +7,47 @@ APP_PORT          = 8000
 INFERENCE_TIMEOUT = 30
 MODELS_JSON       = Path(__file__).parent.parent / "models.json"
 
+_GEAR_SYSTEM = (
+    "/no_think You are a construction site safety compliance inspector. "
+    "Examine the image and determine if the visible worker is wearing required PPE: "
+    "safety helmet or hard hat, and a high-visibility vest. "
+    "Answer with exactly one word: Yes if all required visible gear is worn correctly, "
+    "No if any item is missing or worn incorrectly."
+)
+
+_GEAR_USER = "Is the worker wearing all required safety gear? Answer Yes or No only."
+
+_WEAPON_SYSTEM = (
+    "/no_think You are a security surveillance AI monitoring a construction site. "
+    "Examine the image carefully for any weapons or dangerous objects: "
+    "knives, firearms, batons, blades, or similar threats. "
+    "Answer with exactly one word: Yes if a weapon or dangerous object is visible, "
+    "No if the scene appears safe or if you are unsure."
+)
+
+_WEAPON_USER = "Is there a weapon or dangerous object visible in this image? Answer Yes or No only."
+
+_CUSTOM_SYSTEM = (
+    "/no_think You are a visual analysis assistant. "
+    "Examine the image carefully and answer the user's question. "
+    "Be concise and direct. Prefer Yes or No answers when applicable."
+)
+
 _settings = {
-    "model":          "qwen3-vl:2b-cli",
-    "num_predict":    64,
-    "max_image_size": 640,
-    "system_prompt":  "/no_think You are a hand object detector. Look ONLY at what the person's fingers are wrapped around. Name it in 1-3 words. If hands are empty or not visible, say: none.",
+    "model":                    "qwen3-vl:2b-cli",
+    "num_predict":              512,
+    "max_image_size":           480,
+    "frame_interval":           2.0,
+    "job_timeout_seconds":      120,
+    "frame_timeout_seconds":    30,
+    "max_queue_size":           50,
+    "show_duplicate_results":   False,   # if True, a card is added every cycle even if result text unchanged
+    # Per-use-case prompts
+    "gear_system_prompt":       _GEAR_SYSTEM,
+    "gear_user_prompt":         _GEAR_USER,
+    "weapon_system_prompt":     _WEAPON_SYSTEM,
+    "weapon_user_prompt":       _WEAPON_USER,
+    "custom_system_prompt":     _CUSTOM_SYSTEM,
 }
 
 

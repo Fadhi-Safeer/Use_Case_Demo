@@ -1,253 +1,330 @@
 'use strict';
 
-const LIVE_DEFAULTS = {
-  max_image_size: 480,
-  num_predict: 512,
-  interval_seconds: 3,
-  system_prompt: "/no_think You are analyzing a webcam frame. Focus only on hands and objects they grip. Ignore background. Answer in minimum words.",
+// ── Default prompts for reset ────────────────────────────────────────────────
+
+const DEFAULTS = {
+  num_predict:           512,
+  max_image_size:        480,
+  frame_interval:        2.0,
+  job_timeout_seconds:   120,
+  frame_timeout_seconds: 30,
+  max_queue_size:        50,
+  gear_system_prompt: "/no_think You are a construction site safety compliance inspector. Examine the image and determine if the visible worker is wearing required PPE: safety helmet or hard hat, and a high-visibility vest. Answer with exactly one word: Yes if all required visible gear is worn correctly, No if any item is missing or worn incorrectly.",
+  gear_user_prompt:   "Is the worker wearing all required safety gear? Answer Yes or No only.",
+  weapon_system_prompt: "/no_think You are a security surveillance AI monitoring a construction site. Examine the image carefully for any weapons or dangerous objects: knives, firearms, batons, blades, or similar threats. Answer with exactly one word: Yes if a weapon or dangerous object is visible, No if the scene appears safe.",
+  weapon_user_prompt: "Is there a weapon or dangerous object visible in this image? Answer Yes or No only.",
+  custom_system_prompt: "/no_think You are a visual analysis assistant. Examine the image carefully and answer the user's question. Be concise and direct. Prefer Yes or No answers when applicable.",
+  show_duplicate_results: false,
 };
 
-async function doStartLive() {
-  const prompt = document.getElementById('prompt-input').value.trim();
-  if (!prompt) { alert('Enter a prompt first.'); return; }
 
-  const interval = parseInt(document.getElementById('ps-interval').value, 10);
-  const max_image_size = parseInt(document.getElementById('ps-image-size').value, 10);
-  const num_predict = parseInt(document.getElementById('ps-num-predict').value, 10);
-  if (num_predict < 10) { alert('Max tokens must be at least 10.'); return; }
-  const system_prompt = document.getElementById('ps-system-prompt').value.trim()
-    || LIVE_DEFAULTS.system_prompt;
-  const btn = document.getElementById('start-btn');
-  btn.disabled = true;
+// ── Tab switching ─────────────────────────────────────────────────────────────
+
+function switchTab(tab) {
+  // If switching away from a running tab — stop it first
+  if (state.activeRunningTab && state.activeRunningTab !== tab) {
+    _stopLiveForTab(state.activeRunningTab).catch(() => {});
+  }
+
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-page').forEach(p => p.classList.add('hidden'));
+
+  document.querySelector(`.nav-tab[data-tab="${tab}"]`).classList.add('active');
+  document.getElementById(`tab-${tab}`).classList.remove('hidden');
+  state.activeTab = tab;
+
+  lucide.createIcons();
+}
+
+
+// ── Camera / status poll loop ─────────────────────────────────────────────────
+
+async function pollLoop() {
+  try {
+    const s = await fetchStatus();
+    const camOk = s.camera_ok;
+    state.camera.ok = camOk;
+
+    // Update all cam dots
+    ['gear', 'weapon', 'custom'].forEach(uc => {
+      const dot  = document.getElementById(`cam-dot-${uc}`);
+      const text = document.getElementById(`cam-text-${uc}`);
+      if (dot)  dot.className  = 'status-dot ' + (camOk ? 'cam-ok' : 'cam-err');
+      if (text) text.textContent = camOk ? 'Camera OK' : 'No camera';
+    });
+
+    // Nav status pills
+    const navDot  = document.getElementById('cam-dot');
+    const navText = document.getElementById('cam-text');
+    if (navDot)  navDot.className  = 'status-dot ' + (camOk ? 'cam-ok' : 'cam-err');
+    if (navText) navText.textContent = camOk ? 'Camera' : 'No cam';
+
+    const busy = s.live_mode;
+    const procDot  = document.getElementById('proc-dot');
+    const procText = document.getElementById('proc-text');
+    if (procDot)  procDot.className  = 'status-dot ' + (busy ? 'busy' : 'idle');
+    if (procText) procText.textContent = busy ? 'Analyzing…' : 'Idle';
+
+  } catch (_) { /* network hiccup */ }
+
+  setTimeout(pollLoop, 1000);
+}
+
+
+// ── Results poll loops ────────────────────────────────────────────────────────
+
+async function resultsLoop(useCase) {
+  const ts = state.tabs[useCase];
+  if (!ts.liveJobId) return;
 
   try {
-    await postSettings({ num_predict, max_image_size, system_prompt });
-    const data = await startLive(prompt, interval);
-    if (data.error) { alert(data.error); btn.disabled = false; return; }
+    const hist = await fetchHistory();
+    const job  = (hist.jobs || []).find(j => j.id === ts.liveJobId);
 
-    state.liveJobId = data.job_id;
-    state.lastLiveResult = null;
-    state.liveCardCount = 0;
+    if (job) {
+      const analyzing = document.getElementById(`${useCase}-analyzing`);
+      if (analyzing) {
+        analyzing.classList.toggle('visible', job.status === 'processing' || job.status === 'queued');
+      }
 
-    // Clear previous session cards
-    const list = document.getElementById('results-list');
-    list.innerHTML = '<div id="empty-state">Waiting for first inference\u2026</div>';
+      if (job.status === 'done' && (state.showDuplicates || job.timestamp !== ts.lastTimestamp)) {
+        ts.lastResult = job.result;
+        ts.lastTimestamp = job.timestamp;
+        ts.cardCount += 1;
+        const cardId = ts.liveJobId + '-' + ts.cardCount;
+        const listEl = document.getElementById(`results-list-${useCase}`);
+        if (listEl) {
+          addCard(listEl, { ...job, id: cardId }, useCase);
+        }
+      }
+    }
+  } catch (_) { /* network hiccup */ }
 
-    // Set prompt labels in header and results panel
-    const short = prompt.length > 60 ? prompt.slice(0, 57) + '…' : prompt;
-    document.getElementById('header-prompt-text').textContent = short;
-    document.getElementById('active-prompt-label').textContent = prompt;
+  if (ts.liveJobId) setTimeout(() => resultsLoop(useCase), 1000);
+}
 
-    // Switch screens
-    document.getElementById('prompt-screen').classList.add('hidden');
-    document.getElementById('live-screen').classList.remove('hidden');
+
+// ── Start live ────────────────────────────────────────────────────────────────
+
+async function doStart(useCase) {
+  const btn = document.getElementById(`start-btn-${useCase}`);
+  btn.disabled = true;
+
+  // Stop any currently running tab
+  if (state.activeRunningTab) {
+    await _stopLiveForTab(state.activeRunningTab).catch(() => {});
+  }
+
+  // For custom, grab the typed prompt
+  let userPrompt = '';
+  if (useCase === 'custom') {
+    userPrompt = document.getElementById('custom-prompt-input').value.trim();
+    if (!userPrompt) {
+      alert('Enter a prompt first.');
+      btn.disabled = false;
+      return;
+    }
+  }
+
+  const interval = parseFloat(document.getElementById('s-interval').value || '2');
+
+  try {
+    const data = await startLive(useCase, userPrompt, interval);
+    if (data.error) {
+      alert(data.error);
+      btn.disabled = false;
+      return;
+    }
+
+    const ts = state.tabs[useCase];
+    ts.liveJobId      = data.job_id;
+    ts.lastResult     = null;
+    ts.lastTimestamp  = null;
+    ts.cardCount      = 0;
+    state.activeRunningTab = useCase;
+
+    // Clear results list
+    const listEl = document.getElementById(`results-list-${useCase}`);
+    listEl.innerHTML = '<div class="empty-state">Waiting for first inference…</div>';
+
+    // Show live prompt label
+    const promptLabel = data.prompt || userPrompt;
+    const short = promptLabel.length > 80 ? promptLabel.slice(0, 77) + '…' : promptLabel;
+    const lp = document.getElementById(`${useCase}-live-prompt`);
+    if (lp) lp.textContent = short;
 
     // Start video feed
-    const img = document.getElementById('feed-img');
-    const offline = document.getElementById('feed-offline');
+    const img     = document.getElementById(`feed-img-${useCase}`);
+    const offline = document.getElementById(`feed-offline-${useCase}`);
     img.style.display = 'block';
     offline.style.display = 'none';
     img.onerror = () => { img.style.display = 'none'; offline.style.display = 'flex'; };
     img.src = '/video_feed';
 
-    // Re-render Lucide icons now that live-screen is visible
-    lucide.createIcons();
+    // Switch screens
+    document.getElementById(`${useCase}-prompt-screen`).classList.add('hidden');
+    document.getElementById(`${useCase}-live-screen`).classList.remove('hidden');
 
-    // Start live results loop
-    liveResultsLoop();
+    lucide.createIcons();
+    resultsLoop(useCase);
+
   } catch (e) {
     alert('Request failed: ' + e.message);
     btn.disabled = false;
   }
 }
 
-async function doStopLive() {
-  try { await stopLive(); } catch (e) { /* ignore network errors */ } finally {
-    state.liveJobId = null;
-    state.lastLiveResult = null;
-    state.liveCardCount = 0;
 
-    const indicator = document.getElementById('analyzing-indicator');
-    if (indicator) indicator.style.display = 'none';
+// ── Stop live ─────────────────────────────────────────────────────────────────
 
-    // Stop video feed
-    const img = document.getElementById('feed-img');
-    img.src = '';
-    img.style.display = '';
-    document.getElementById('feed-offline').style.display = 'none';
+async function doStop(useCase) {
+  await _stopLiveForTab(useCase).catch(() => {});
+}
 
-    // Clear results list
-    document.getElementById('results-list').innerHTML =
-      '<div id="empty-state">Waiting for first inference…</div>';
+async function _stopLiveForTab(useCase) {
+  await stopLive().catch(() => {});
 
-    // Clear pending cards tracker
-    Object.keys(state.pendingCards).forEach(k => delete state.pendingCards[k]);
+  const ts = state.tabs[useCase];
+  ts.liveJobId       = null;
+  ts.lastResult      = null;
+  ts.lastTimestamp   = null;
+  ts.cardCount       = 0;
+  state.activeRunningTab = null;
 
-    // Re-enable start button
-    document.getElementById('start-btn').disabled = false;
+  // Stop video
+  const img = document.getElementById(`feed-img-${useCase}`);
+  if (img) { img.src = ''; img.style.display = 'none'; }
+  const offline = document.getElementById(`feed-offline-${useCase}`);
+  if (offline) offline.style.display = 'none';
 
-    // Switch screens
-    document.getElementById('live-screen').classList.add('hidden');
-    document.getElementById('prompt-screen').classList.remove('hidden');
+  // Hide analyzing indicator
+  const ind = document.getElementById(`${useCase}-analyzing`);
+  if (ind) ind.classList.remove('visible');
+
+  // Switch back to prompt screen
+  document.getElementById(`${useCase}-live-screen`).classList.add('hidden');
+  document.getElementById(`${useCase}-prompt-screen`).classList.remove('hidden');
+
+  const btn = document.getElementById(`start-btn-${useCase}`);
+  if (btn) btn.disabled = false;
+
+  lucide.createIcons();
+}
+
+
+// ── Clear results ─────────────────────────────────────────────────────────────
+
+function clearResults(useCase) {
+  const listEl = document.getElementById(`results-list-${useCase}`);
+  if (listEl) listEl.innerHTML = '<div class="empty-state">Waiting for first inference…</div>';
+  state.tabs[useCase].lastResult    = null;
+  state.tabs[useCase].lastTimestamp = null;
+  state.tabs[useCase].cardCount     = 0;
+}
+
+
+// ── Settings page ─────────────────────────────────────────────────────────────
+
+function loadSettingsIntoForm(data) {
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+  set('s-image-size',    data.max_image_size    || 480);
+  set('s-num-predict',   data.num_predict       || 512);
+  set('s-interval',      data.frame_interval    || 2);
+  set('s-job-timeout',   data.job_timeout_seconds   || 120);
+  set('s-frame-timeout', data.frame_timeout_seconds || 30);
+  set('s-queue-size',    data.max_queue_size    || 50);
+  const dupeEl = document.getElementById('s-show-dupes');
+  if (dupeEl) dupeEl.checked = !!data.show_duplicate_results;
+  state.showDuplicates = !!data.show_duplicate_results;
+  set('s-gear-sys',      data.gear_system_prompt   || '');
+  set('s-gear-user',     data.gear_user_prompt     || '');
+  set('s-weapon-sys',    data.weapon_system_prompt || '');
+  set('s-weapon-user',   data.weapon_user_prompt   || '');
+  set('s-custom-sys',    data.custom_system_prompt || '');
+}
+
+function loadPromptPreviews(data) {
+  const gp = document.getElementById('gear-prompt-preview');
+  const wp = document.getElementById('weapon-prompt-preview');
+  if (gp) gp.textContent = data.gear_user_prompt   || '—';
+  if (wp) wp.textContent = data.weapon_user_prompt || '—';
+}
+
+async function saveSettings() {
+  const val = id => document.getElementById(id).value;
+  const payload = {
+    max_image_size:        parseInt(val('s-image-size')),
+    num_predict:           parseInt(val('s-num-predict')),
+    frame_interval:        parseFloat(val('s-interval')),
+    job_timeout_seconds:   parseInt(val('s-job-timeout')),
+    frame_timeout_seconds: parseInt(val('s-frame-timeout')),
+    max_queue_size:        parseInt(val('s-queue-size')),
+    show_duplicate_results: document.getElementById('s-show-dupes').checked,
+    gear_system_prompt:    val('s-gear-sys'),
+    gear_user_prompt:      val('s-gear-user'),
+    weapon_system_prompt:  val('s-weapon-sys'),
+    weapon_user_prompt:    val('s-weapon-user'),
+    custom_system_prompt:  val('s-custom-sys'),
+  };
+
+  try {
+    const data = await postSettings(payload);
+    state.showDuplicates = !!data.show_duplicate_results;
+    loadPromptPreviews(data);
+    showToast();
+  } catch (e) {
+    alert('Save failed: ' + e.message);
   }
 }
 
-async function pollLoop() {
-  try {
-    const statusData = await fetchStatus();
-
-    // Camera dot — update on both screens
-    const camOk = statusData.camera_ok;
-    const camDot = document.getElementById('cam-dot');
-    const camText = document.getElementById('cam-text');
-    const camDotP = document.getElementById('cam-dot-prompt');
-    const camTextP = document.getElementById('cam-text-prompt');
-
-    if (camOk) {
-      if (camDot) camDot.className = 'status-dot cam-ok';
-      if (camText) camText.textContent = 'Camera';
-      if (camDotP) camDotP.className = 'status-dot cam-ok';
-      if (camTextP) camTextP.textContent = 'Camera OK';
-    } else {
-      if (camDot) camDot.className = 'status-dot cam-err';
-      if (camText) camText.textContent = 'No camera';
-      if (camDotP) camDotP.className = 'status-dot cam-err';
-      if (camTextP) camTextP.textContent = 'No camera';
-    }
-
-    // Processing dot
-    const busy = statusData.processing !== null || statusData.live_mode;
-    const procDot = document.getElementById('proc-dot');
-    const procText = document.getElementById('proc-text');
-    if (procDot) procDot.className = 'status-dot ' + (busy ? 'busy' : 'idle');
-    if (procText) procText.textContent = busy ? 'Analyzing…' : 'Idle';
-
-  } catch (e) { /* network hiccup */ }
-
-  setTimeout(pollLoop, 1000);
+function resetSettings() {
+  loadSettingsIntoForm(DEFAULTS);
 }
 
-async function liveResultsLoop() {
-  if (!state.liveJobId) return;
-  try {
-    const histData = await fetchHistory();
-    const job = (histData.jobs || []).find(j => j.id === state.liveJobId);
-    if (job) {
-      if (job.status === 'done' && job.result !== state.lastLiveResult) {
-        state.lastLiveResult = job.result;
-        state.liveCardCount += 1;
-        const newId = state.liveJobId + '-' + state.liveCardCount;
-        const list = document.getElementById('results-list');
-        const empty = document.getElementById('empty-state');
-        if (empty) empty.remove();
-        const card = document.createElement('div');
-        card.className = 'result-card done';
-        card.id = 'card-' + newId;
-        card.innerHTML = renderCard({
-          id: newId,
-          status: 'done',
-          prompt: job.prompt,
-          result: job.result,
-          elapsed: job.elapsed,
-          thumb: job.thumb,
-          timestamp: job.timestamp,
-        });
-        list.insertBefore(card, list.firstChild);
-        lucide.createIcons();
-      }
-      const indicator = document.getElementById('analyzing-indicator');
-      if (indicator) {
-        indicator.style.display = (job.status === 'processing' || job.status === 'queued') ? 'flex' : 'none';
-      }
-    }
-  } catch (e) { /* network hiccup */ }
-  if (state.liveJobId) setTimeout(liveResultsLoop, 1000);
+function showToast() {
+  const t = document.getElementById('settings-toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
 }
 
-function clearLiveResults() {
-  const list = document.getElementById('results-list');
-  list.innerHTML = '<div id="empty-state">Waiting for first inference\u2026</div>';
-  state.lastLiveResult = null;
-  state.liveCardCount = 0;
-}
 
-function setPreset(btn, text) {
-  if (state.activePreset) state.activePreset.classList.remove('active');
-  state.activePreset = btn;
-  btn.classList.add('active');
-  document.getElementById('prompt-input').value = text;
-}
-
-function togglePromptSettings() {
-  const panel = document.getElementById('prompt-settings-panel');
-  const btn = document.getElementById('prompt-settings-btn');
-  const open = panel.style.display === 'block';
-  panel.style.display = open ? 'none' : 'block';
-  btn.classList.toggle('open', !open);
-}
-
-function resetPromptSettings() {
-  document.getElementById('ps-image-size').value = '480';
-  document.getElementById('ps-num-predict').value = '512';
-  document.getElementById('ps-interval').value = '3';
-  document.getElementById('ps-system-prompt').value = LIVE_DEFAULTS.system_prompt;
-}
+// ── Init ──────────────────────────────────────────────────────────────────────
 
 function init() {
-  // Load current system prompt from backend
-  fetchSettings().then(data => {
-    const el = document.getElementById('ps-system-prompt');
-    el.value = data.system_prompt || LIVE_DEFAULTS.system_prompt;
-  }).catch(() => {
-    document.getElementById('ps-system-prompt').value = LIVE_DEFAULTS.system_prompt;
-  });
-
-  // Stop any orphaned live session from a previous page visit
+  // Stop any orphaned session from previous visit
   fetch('/stop_live', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({}),
-  }).catch(() => { });
+  }).catch(() => {});
 
-  // Preset buttons
-  document.getElementById('preset-describe').addEventListener('click', function () {
-    setPreset(this, 'Describe what you see in this scene in short sentence.');
-  });
-  document.getElementById('preset-read').addEventListener('click', function () {
-    setPreset(this, 'Read and transcribe every text, label, sign, or writing visible. List each one exactly as written.');
-  });
-  document.getElementById('preset-count').addEventListener('click', function () {
-    setPreset(this, 'Count every distinct object or person visible. Give a total number and a breakdown by category.');
+  // Load settings from backend → populate form + prompt previews
+  fetchSettings().then(data => {
+    loadSettingsIntoForm(data);
+    loadPromptPreviews(data);
+  }).catch(() => {
+    loadSettingsIntoForm(DEFAULTS);
+    loadPromptPreviews(DEFAULTS);
   });
 
-  // Deactivate preset on manual typing
-  document.getElementById('prompt-input').addEventListener('input', () => {
-    if (state.activePreset) {
-      state.activePreset.classList.remove('active');
-      state.activePreset = null;
-    }
+  // Tab buttons
+  document.querySelectorAll('.nav-tab').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
   });
 
-  // Start / stop
-  document.getElementById('start-btn').addEventListener('click', doStartLive);
-  document.getElementById('stop-btn').addEventListener('click', doStopLive);
-
-  // Prompt screen settings
-  document.getElementById('prompt-settings-btn').addEventListener('click', togglePromptSettings);
-  document.getElementById('ps-reset-btn').addEventListener('click', resetPromptSettings);
-
-  document.addEventListener('click', function (e) {
-    const panel = document.getElementById('prompt-settings-panel');
-    const btn = document.getElementById('prompt-settings-btn');
-    if (!panel || !btn) return;
-    if (panel.style.display !== 'block') return;
-    if (!panel.contains(e.target) && !btn.contains(e.target)) {
-      panel.style.display = 'none';
-      btn.classList.remove('open');
-    }
+  // Start buttons
+  ['gear', 'weapon', 'custom'].forEach(uc => {
+    document.getElementById(`start-btn-${uc}`)
+      .addEventListener('click', () => doStart(uc));
+    document.getElementById(`stop-btn-${uc}`)
+      .addEventListener('click', () => doStop(uc));
   });
 
-  // Stop live mode if user refreshes/closes/navigates away
+  // Settings page
+  document.getElementById('settings-save-btn').addEventListener('click', saveSettings);
+  document.getElementById('settings-reset-btn').addEventListener('click', resetSettings);
+
+  // Stop on page unload
   window.addEventListener('beforeunload', () => {
     navigator.sendBeacon('/stop_live', '{}');
   });

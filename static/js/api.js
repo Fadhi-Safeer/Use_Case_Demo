@@ -24,11 +24,16 @@ async function postSettings(data) {
   return r.json();
 }
 
-async function startLive(prompt, interval_seconds) {
+/**
+ * @param {string} useCase  - 'gear' | 'weapon' | 'custom'
+ * @param {string} prompt   - user prompt (only used for 'custom')
+ * @param {number} interval - seconds between frames
+ */
+async function startLive(useCase, prompt, interval) {
   const r = await fetch('/start_live', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt, interval_seconds }),
+    body: JSON.stringify({ use_case: useCase, prompt, interval_seconds: interval }),
   });
   return r.json();
 }

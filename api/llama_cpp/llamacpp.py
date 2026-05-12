@@ -5,16 +5,23 @@ from api.config import cfg, INFERENCE_TIMEOUT, LLAMA_SERVER_URL
 _THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL)
 _STOP_TOKENS = ["<|im_end|>", "<|endoftext|>", "</s>"]
 
-def query(frame_b64: str, prompt: str) -> str:
-    """Send image + prompt to llama-server. Blocking — run via run_in_executor."""
+
+def query(frame_b64: str, prompt: str, system_prompt: str = None) -> str:
+    """Send image + prompt to llama-server. Blocking — run via run_in_executor.
+    
+    system_prompt: if provided, overrides the stored system prompt.
+    """
     num_predict = int(cfg("num_predict"))
     image_url = f"data:image/jpeg;base64,{frame_b64}"
+
+    # Use caller-supplied system_prompt, or fall back to legacy key if set
+    sys_content = system_prompt if system_prompt is not None else ""
 
     payload = {
         "messages": [
             {
-               "role": "system",
-                "content": cfg("system_prompt"),
+                "role": "system",
+                "content": sys_content,
             },
             {
                 "role": "user",
@@ -22,7 +29,7 @@ def query(frame_b64: str, prompt: str) -> str:
                     {"type": "image_url", "image_url": {"url": image_url}},
                     {"type": "text", "text": prompt},
                 ],
-            }
+            },
         ],
         "max_tokens": num_predict,
         "temperature": 0.1,
@@ -50,10 +57,5 @@ def query(frame_b64: str, prompt: str) -> str:
     for tok in _STOP_TOKENS:
         text = text.replace(tok, "")
     text = _THINK_RE.sub("", text).strip()
-
-    # Hard word limit safety net
-    words = text.split()
-    if len(words) > 10:
-        text = " ".join(words[:10])
 
     return text

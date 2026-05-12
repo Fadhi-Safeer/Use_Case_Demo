@@ -1,51 +1,55 @@
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body {
   height: 100%;
   overflow: hidden;
-}
-
-body {
-  background: var(--bg0);
-  color: var(--text);
   font-family: var(--font-ui);
   font-size: 13px;
-  line-height: 1.5;
+  color: var(--text);
+  background: var(--bg0);
 }
 
-button {
-  font-family: var(--font-ui);
-  cursor: pointer;
-  border: none;
-  outline: none;
+/* Subtle grain overlay on entire page */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.6;
 }
 
-textarea {
-  font-family: var(--font-ui);
-  outline: none;
-  resize: none;
-}
+button { cursor: pointer; border: none; background: none; font-family: inherit; font-size: inherit; }
+input, textarea, select { font-family: inherit; font-size: inherit; color: inherit; }
+textarea { resize: vertical; }
+a { color: inherit; text-decoration: none; }
 
-input[type="number"],
-select {
-  font-family: var(--font-ui);
-  outline: none;
-}
-
-::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar       { width: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-
-@keyframes pulse-border {
-  0%, 100% { border-color: var(--amber); opacity: 1; }
-  50%       { border-color: var(--amber-dim); opacity: 0.5; }
-}
+::-webkit-scrollbar-thumb:hover { background: var(--text3); }
 
 @keyframes glow-dot {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0.3; }
+  50%       { opacity: 0.4; }
 }
+
+@keyframes card-processing {
+  0%, 100% { border-left-color: var(--amber); }
+  50%       { border-left-color: rgba(245,158,11,0.2); }
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 currentColor; }
+  70%  { box-shadow: 0 0 0 5px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+.hidden { display: none !important; }

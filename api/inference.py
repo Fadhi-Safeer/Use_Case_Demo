@@ -1,16 +1,7 @@
-import json
+"""Inference dispatcher — routes to llama_cpp backend."""
+from api.llama_cpp import query as _llama_query
 
-from api.config import cfg, MODELS_JSON
 
-
-def query(frame_b64: str, prompt: str) -> str:
-    with open(MODELS_JSON) as f:
-        defs = json.load(f)
-    model = cfg("model")
-    endpoint = defs[model]["endpoint"]
-    if endpoint == "llamacpp":
-        from api.llama_cpp import query as _q
-        return _q(frame_b64, prompt)
-    else:  # llamacpp_cli
-        from api.llama_cpp.llamacpp import query as _q
-        return _q(frame_b64, prompt)
+def query(frame_b64: str, prompt: str, system_prompt: str = None) -> str:
+    """Run inference. system_prompt overrides the backend default when supplied."""
+    return _llama_query(frame_b64, prompt, system_prompt=system_prompt)
