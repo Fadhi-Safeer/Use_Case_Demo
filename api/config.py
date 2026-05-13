@@ -43,8 +43,6 @@ _settings = {
     "frame_timeout_seconds":    30,
     "max_queue_size":           50,
     "show_duplicate_results":   False,   # if True, a card is added every cycle even if result text unchanged
-    "enable_person_crop":       False,   # if True, YOLO crops persons before VLM inference
-    "yolo_max_persons":         2,       # max persons to analyse per frame (each = ~10s VLM call)
     # Per-use-case prompts
     "gear_system_prompt":       _GEAR_SYSTEM,
     "gear_user_prompt":         _GEAR_USER,

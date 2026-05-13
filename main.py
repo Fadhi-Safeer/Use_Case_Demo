@@ -16,7 +16,6 @@ from api.routes.feed import router as feed_router
 from api.routes.improve import router as improve_router
 from api.routes.settings import router as settings_router
 from api.worker import worker_loop
-from api.yolo.detector import load_model as load_yolo
 
 BASE_DIR = Path(__file__).parent
 
@@ -26,7 +25,6 @@ async def lifespan(app: FastAPI):
     state.processing_lock = asyncio.Lock()
     start_camera()
     asyncio.create_task(worker_loop())
-    load_yolo()
     yield
 
 

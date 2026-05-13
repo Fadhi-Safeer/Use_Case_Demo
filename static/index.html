@@ -446,23 +446,6 @@
                   every cycle regardless.</span>
               </div>
 
-              <div class="settings-field full-width" style="grid-column:1/-1">
-                <label class="field-label">Person Crop (YOLO)</label>
-                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-top:2px;">
-                  <input type="checkbox" id="s-person-crop" style="accent-color:var(--gear2);width:15px;height:15px;">
-                  <span style="font-size:12px;font-family:var(--font-mono);color:var(--text2);">
-                    Detect and crop individual persons before VLM analysis
-                  </span>
-                </label>
-                <span class="field-helper">Off (default) — full frame sent to VLM. On — YOLO detects persons, each crop analyzed separately.</span>
-              </div>
-
-              <div class="settings-field">
-                <label class="field-label" for="s-max-persons">Max Persons per Frame</label>
-                <input type="number" class="field-control" id="s-max-persons" value="2" min="1" max="5" step="1">
-                <span class="field-helper">Each person = ~10 s VLM call. Keep low.</span>
-              </div>
-
             </div>
           </div>
 
