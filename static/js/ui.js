@@ -15,6 +15,8 @@ const DEFAULTS = {
   weapon_user_prompt: "Is there a weapon or dangerous object visible in this image? Answer Yes or No only.",
   custom_system_prompt: "/no_think You are a visual analysis assistant. Examine the image carefully and answer the user's question. Be concise and direct. Prefer Yes or No answers when applicable.",
   show_duplicate_results: false,
+  enable_person_crop: false,
+  yolo_max_persons: 2,
 };
 
 
@@ -243,6 +245,9 @@ function loadSettingsIntoForm(data) {
   const dupeEl = document.getElementById('s-show-dupes');
   if (dupeEl) dupeEl.checked = !!data.show_duplicate_results;
   state.showDuplicates = !!data.show_duplicate_results;
+  const cropEl = document.getElementById('s-person-crop');
+  if (cropEl) cropEl.checked = !!data.enable_person_crop;
+  set('s-max-persons', data.yolo_max_persons || 2);
   set('s-gear-sys',      data.gear_system_prompt   || '');
   set('s-gear-user',     data.gear_user_prompt     || '');
   set('s-weapon-sys',    data.weapon_system_prompt || '');
@@ -267,6 +272,8 @@ async function saveSettings() {
     frame_timeout_seconds: parseInt(val('s-frame-timeout')),
     max_queue_size:        parseInt(val('s-queue-size')),
     show_duplicate_results: document.getElementById('s-show-dupes').checked,
+    enable_person_crop:    document.getElementById('s-person-crop').checked,
+    yolo_max_persons:      parseInt(val('s-max-persons')),
     gear_system_prompt:    val('s-gear-sys'),
     gear_user_prompt:      val('s-gear-user'),
     weapon_system_prompt:  val('s-weapon-sys'),
@@ -353,6 +360,25 @@ function init() {
       .addEventListener('click', () => doStart(uc));
     document.getElementById(`stop-btn-${uc}`)
       .addEventListener('click', () => doStop(uc));
+  });
+
+  // Improve prompt button (custom tab only)
+  document.getElementById('improve-prompt-btn').addEventListener('click', async () => {
+    const textarea = document.getElementById('custom-prompt-input');
+    const rawPrompt = textarea.value.trim();
+    if (!rawPrompt) return;
+    const btn = document.getElementById('improve-prompt-btn');
+    btn.disabled = true;
+    btn.innerText = 'Improving…';
+    try {
+      const improved = await improvePrompt(rawPrompt);
+      textarea.value = improved;
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerText = 'Improve';
+    }
   });
 
   // Settings page

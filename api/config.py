@@ -29,8 +29,9 @@ _WEAPON_USER = "Is there a weapon or dangerous object visible in this image? Ans
 
 _CUSTOM_SYSTEM = (
     "/no_think You are a visual analysis assistant. "
-    "Examine the image carefully and answer the user's question. "
-    "Be concise and direct. Prefer Yes or No answers when applicable."
+    "Examine the image carefully"
+    "Respond with only the detected item or object names if clearly present, or NONE if not detected or unsure."
+    "List detected items separated by commas, no explanation, no sentences."
 )
 
 _settings = {
@@ -42,6 +43,8 @@ _settings = {
     "frame_timeout_seconds":    30,
     "max_queue_size":           50,
     "show_duplicate_results":   False,   # if True, a card is added every cycle even if result text unchanged
+    "enable_person_crop":       False,   # if True, YOLO crops persons before VLM inference
+    "yolo_max_persons":         2,       # max persons to analyse per frame (each = ~10s VLM call)
     # Per-use-case prompts
     "gear_system_prompt":       _GEAR_SYSTEM,
     "gear_user_prompt":         _GEAR_USER,

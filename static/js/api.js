@@ -46,3 +46,14 @@ async function stopLive() {
   });
   return r.json();
 }
+
+async function improvePrompt(rawPrompt) {
+  const r = await fetch('/improve_prompt', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: rawPrompt }),
+  });
+  const data = await r.json();
+  if (data.error) throw new Error(data.error);
+  return data.improved_prompt;
+}

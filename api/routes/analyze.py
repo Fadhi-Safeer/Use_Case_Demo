@@ -11,6 +11,7 @@ from api import state
 from api.camera import encode_b64
 from api.config import cfg
 from api.inference import query
+from api.yolo.detector import detect_people
 
 router = APIRouter()
 
@@ -113,13 +114,38 @@ async def start_live(data: dict):
                 t0 = time.time()
                 try:
                     size = int(cfg("max_image_size"))
-                    frame_b64 = encode_b64(frame, size=(size, size))
                     thumb_b64 = encode_b64(frame, size=(192, 128), quality=75)
                     loop = asyncio.get_event_loop()
-                    result = await loop.run_in_executor(
-                        None,
-                        lambda: query(frame_b64, prompt, system_prompt=system_prompt),
-                    )
+
+                    if cfg("enable_person_crop"):
+                        max_p = int(cfg("yolo_max_persons"))
+                        crops = await loop.run_in_executor(
+                            None, lambda: detect_people(frame, max_persons=max_p)
+                        )
+                    else:
+                        crops = []
+
+                    if crops:
+                        results = []
+                        for crop_bytes in crops:
+                            crop_b64 = encode_b64(crop_bytes)
+                            r = await loop.run_in_executor(
+                                None,
+                                lambda cb=crop_b64: query(cb, prompt, system_prompt=system_prompt),
+                            )
+                            results.append(r)
+                        result = (
+                            "\n".join(f"Person {i+1}: {r}" for i, r in enumerate(results))
+                            if len(results) > 1
+                            else results[0]
+                        )
+                    else:
+                        frame_b64 = encode_b64(frame, size=(size, size))
+                        result = await loop.run_in_executor(
+                            None,
+                            lambda: query(frame_b64, prompt, system_prompt=system_prompt),
+                        )
+
                     elapsed = round(time.time() - t0, 1)
                     if entry:
                         entry.update({
