@@ -120,14 +120,18 @@ async def start_live(data: dict):
                         None,
                         lambda: query(frame_b64, prompt, system_prompt=system_prompt),
                     )
+                    is_threat = result.strip().lower().startswith("yes")
+                    alert_fired = state.alert_manager.update(is_threat)
+                    # pass alert_fired into history update below if the field exists
                     elapsed = round(time.time() - t0, 1)
                     if entry:
                         entry.update({
-                            "status":  "done",
-                            "result":  result,
-                            "elapsed": elapsed,
-                            "thumb":   thumb_b64,
-                            "timestamp": datetime.now().strftime("%H:%M:%S"),
+                            "status":      "done",
+                            "result":      result,
+                            "elapsed":     elapsed,
+                            "thumb":       thumb_b64,
+                            "timestamp":   datetime.now().strftime("%H:%M:%S"),
+                            "alert_fired": alert_fired,
                         })
                 except Exception as exc:
                     elapsed = round(time.time() - t0, 1)

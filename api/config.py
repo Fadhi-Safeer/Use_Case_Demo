@@ -22,10 +22,14 @@ _WEAPON_SYSTEM = (
     "Examine the image carefully for any weapons or dangerous objects: "
     "knives, firearms, batons, blades, or similar threats. "
     "Answer with exactly one word: Yes if a weapon or dangerous object is visible, "
-    "No if the scene appears safe or if you are unsure."
+    "No if the scene appears safe."
 )
 
 _WEAPON_USER = "Is there a weapon or dangerous object visible in this image? Answer Yes or No only."
+
+ALERT_CONSECUTIVE_THRESHOLD: int   = 4
+ALERT_MAX_GAP_SECONDS:       float = 10.0
+ALERT_SOUND_PATH:            str   = "assets/alert.wav"
 
 _CUSTOM_SYSTEM = (
     "/no_think You are a visual analysis assistant. "

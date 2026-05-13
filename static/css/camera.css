@@ -94,3 +94,7 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+/* ── Alert card flash ──────────────────────────────────────── */
+.alert-fired { border: 2px solid red; animation: flashborder 1s 3; }
+@keyframes flashborder { 0%,100%{border-color:red} 50%{border-color:transparent} }

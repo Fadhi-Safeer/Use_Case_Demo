@@ -78,6 +78,10 @@ async function pollLoop() {
 }
 
 
+// ── Alert sound (played in browser when alert_fired is true) ──────────────────
+
+const alertSound = new Audio('/static/alert.wav');
+
 // ── Results poll loops ────────────────────────────────────────────────────────
 
 async function resultsLoop(useCase) {
@@ -102,6 +106,11 @@ async function resultsLoop(useCase) {
         const listEl = document.getElementById(`results-list-${useCase}`);
         if (listEl) {
           addCard(listEl, { ...job, id: cardId }, useCase);
+          if (job.alert_fired) {
+            alertSound.play().catch(e => console.warn('Browser blocked audio:', e));
+            const card = document.getElementById('card-' + cardId);
+            if (card) card.classList.add('alert-fired');
+          }
         }
       }
     }
