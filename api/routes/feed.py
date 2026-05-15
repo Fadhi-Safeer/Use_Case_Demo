@@ -18,7 +18,7 @@ def video_feed():
                 time.sleep(0.05)
                 continue
             yield b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + frame + b"\r\n"
-            time.sleep(1 / 30)
+            time.sleep(0.01)  # camera thread controls rate; just avoid busy-loop
 
     return StreamingResponse(
         generate(),

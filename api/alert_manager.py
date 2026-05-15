@@ -42,7 +42,7 @@ class AlertManager:
                         self._streak = 0
                 self._streak += 1
                 self._last_threat_ts = now
-                if self._streak >= self.threshold:
+                if self._streak % self.threshold == 0:
                     triggered = True
             else:
                 self._streak = 0

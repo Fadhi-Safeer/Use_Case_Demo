@@ -33,7 +33,7 @@ ALERT_SOUND_PATH:            str   = "assets/alert.wav"
 
 _CUSTOM_SYSTEM = (
     "/no_think You are a visual analysis assistant. "
-    "Examine the image carefully"
+    "Examine the image carefully "
     "Respond with only the detected item or object names if clearly present, or NONE if not detected or unsure."
     "List detected items separated by commas, no explanation, no sentences."
 )
@@ -42,7 +42,7 @@ _settings = {
     "model":                    "qwen3-vl:2b-cli",
     "num_predict":              512,
     "max_image_size":           640,
-    "frame_interval":           2.0,
+    "frame_interval":           3.0,
     "job_timeout_seconds":      120,
     "frame_timeout_seconds":    30,
     "max_queue_size":           50,

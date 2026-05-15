@@ -5,9 +5,9 @@ const state = {
   activeRunningTab: null,   // 'gear' | 'weapon' | 'custom' | null
 
   tabs: {
-    gear:   { liveJobId: null, lastResult: null, lastTimestamp: null, cardCount: 0 },
-    weapon: { liveJobId: null, lastResult: null, lastTimestamp: null, cardCount: 0 },
-    custom: { liveJobId: null, lastResult: null, lastTimestamp: null, cardCount: 0 },
+    gear:   { liveSessionId: null, lastResult: null, lastSeenSeq: 0, cardCount: 0 },
+    weapon: { liveSessionId: null, lastResult: null, lastSeenSeq: 0, cardCount: 0 },
+    custom: { liveSessionId: null, lastResult: null, lastSeenSeq: 0, cardCount: 0 },
   },
 
   camera: { ok: false },

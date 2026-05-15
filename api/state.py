@@ -1,4 +1,5 @@
 import asyncio
+import collections
 import threading
 from collections import OrderedDict
 
@@ -17,7 +18,7 @@ frame_lock = threading.Lock()
 job_queue: OrderedDict = OrderedDict()
 history: list = []
 
-HISTORY_MAX = 50
+HISTORY_MAX = 100
 
 live_mode_running: bool = False
 live_mode_task = None
@@ -29,3 +30,15 @@ alert_manager = AlertManager(
     max_gap_seconds=ALERT_MAX_GAP_SECONDS,
     sound_path=ALERT_SOUND_PATH,
 )
+
+# ── Queue / inference stats (updated by analyze.py) ──────────────────────────
+queue_depth: int = 0
+queue_peak: int = 0
+last_inference_latency_ms: int = None
+avg_inference_latency_ms: int = None
+consumer_idle_seconds: float = None
+cancelled_count: int = 0
+last_session_summary: dict = None
+
+_latency_window: collections.deque = collections.deque(maxlen=10)
+_consumer_last_complete_ts: float = None   # monotonic timestamp

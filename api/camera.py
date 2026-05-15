@@ -18,6 +18,7 @@ def _open_camera():
     cap = cv2.VideoCapture(CAMERA_INDEX)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # prevent stale-frame buildup
     _cap = cap
 
 
@@ -25,14 +26,17 @@ def _camera_loop():
     global _cap
     _open_camera()
     while True:
+        t0 = time.monotonic()
         with _cap_lock:
-            ret, frame = _cap.read()
+            _cap.grab()               # discard any queued frame
+            ret, frame = _cap.retrieve()
             # frame = cv2.flip(frame, 1)
         if ret:
             jpg = encode_bytes(frame)
             with state.frame_lock:
                 state.latest_frame = jpg
-        time.sleep(0.033)  # ~30 fps
+        elapsed = time.monotonic() - t0
+        time.sleep(max(0, 0.033 - elapsed))  # maintain ~30 fps
 
 
 def start_camera():

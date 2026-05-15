@@ -62,6 +62,9 @@ function renderCard(job, useCase) {
   if (job.status === 'queued' || job.status === 'processing') {
     bodyHtml = `<div class="card-result pending">Analyzing…</div>`;
     stateBadge = `<span class="ctag ctag-amber">${escHtml(job.status)}</span>`;
+  } else if (job.status === 'cancelled') {
+    bodyHtml = `<div class="card-result pending">Cancelled</div>`;
+    stateBadge = `<span class="ctag">CANCELLED</span>`;
   } else if (job.status === 'error') {
     bodyHtml = `<div class="card-result error-text">${escHtml(job.result || '')}</div>`;
     stateBadge = `<span class="result-state-badge badge-fail">ERROR</span>`;
@@ -90,7 +93,8 @@ function renderCard(job, useCase) {
  * Compute the CSS class for a completed card (pass/fail/unknown/error/queued/processing).
  */
 function cardClass(job, useCase) {
-  if (job.status === 'error')   return 'result-card error';
+  if (job.status === 'error')     return 'result-card error';
+  if (job.status === 'cancelled') return 'result-card';
   if (job.status === 'queued' || job.status === 'processing') return 'result-card processing';
   const rs = parseResultState(job.result, useCase);
   return `result-card ${rs}`;

@@ -5,7 +5,7 @@
 const DEFAULTS = {
   num_predict:           512,
   max_image_size:        640,
-  frame_interval:        2.0,
+  frame_interval:        3.0,
   job_timeout_seconds:   120,
   frame_timeout_seconds: 30,
   max_queue_size:        50,
@@ -86,37 +86,46 @@ const alertSound = new Audio('/static/alert.wav');
 
 async function resultsLoop(useCase) {
   const ts = state.tabs[useCase];
-  if (!ts.liveJobId) return;
+  if (!ts.liveSessionId) return;
 
   try {
     const hist = await fetchHistory();
-    const job  = (hist.jobs || []).find(j => j.id === ts.liveJobId);
+    const jobs = hist.jobs || [];
 
-    if (job) {
-      const analyzing = document.getElementById(`${useCase}-analyzing`);
-      if (analyzing) {
-        analyzing.classList.toggle('visible', job.status === 'processing' || job.status === 'queued');
-      }
+    // Show "analyzing" indicator if any entry for this session is in-flight
+    const analyzing = document.getElementById(`${useCase}-analyzing`);
+    if (analyzing) {
+      const inFlight = jobs.some(
+        j => j.session_id === ts.liveSessionId &&
+             (j.status === 'processing' || j.status === 'queued')
+      );
+      analyzing.classList.toggle('visible', inFlight);
+    }
 
-      if (job.status === 'done' && (state.showDuplicates || job.timestamp !== ts.lastTimestamp)) {
-        ts.lastResult = job.result;
-        ts.lastTimestamp = job.timestamp;
-        ts.cardCount += 1;
-        const cardId = ts.liveJobId + '-' + ts.cardCount;
-        const listEl = document.getElementById(`results-list-${useCase}`);
-        if (listEl) {
-          addCard(listEl, { ...job, id: cardId }, useCase);
-          if (job.alert_fired) {
-            alertSound.play().catch(e => console.warn('Browser blocked audio:', e));
-            const card = document.getElementById('card-' + cardId);
-            if (card) card.classList.add('alert-fired');
-          }
+    // Render all done/error/cancelled entries not yet shown, in capture order
+    const listEl = document.getElementById(`results-list-${useCase}`);
+    if (listEl) {
+      const newJobs = jobs
+        .filter(j => j.session_id === ts.liveSessionId &&
+                     j.status !== 'queued' && j.status !== 'processing' &&
+                     (j.seq_num || 0) > ts.lastSeenSeq)
+        .sort((a, b) => (a.seq_num || 0) - (b.seq_num || 0));
+
+      for (const job of newJobs) {
+        ts.lastResult  = job.result;
+        ts.lastSeenSeq = job.seq_num || ts.lastSeenSeq;
+        ts.cardCount  += 1;
+        addCard(listEl, job, useCase);
+        if (job.alert_fired) {
+          alertSound.play().catch(e => console.warn('Browser blocked audio:', e));
+          const card = document.getElementById('card-' + job.id);
+          if (card) card.classList.add('alert-fired');
         }
       }
     }
   } catch (_) { /* network hiccup */ }
 
-  if (ts.liveJobId) setTimeout(() => resultsLoop(useCase), 1000);
+  if (ts.liveSessionId) setTimeout(() => resultsLoop(useCase), 1000);
 }
 
 
@@ -142,7 +151,7 @@ async function doStart(useCase) {
     }
   }
 
-  const interval = parseFloat(document.getElementById('s-interval').value || '2');
+  const interval = parseFloat(document.getElementById('s-interval').value || '3');
 
   try {
     const data = await startLive(useCase, userPrompt, interval);
@@ -153,9 +162,9 @@ async function doStart(useCase) {
     }
 
     const ts = state.tabs[useCase];
-    ts.liveJobId      = data.job_id;
+    ts.liveSessionId  = data.job_id;
     ts.lastResult     = null;
-    ts.lastTimestamp  = null;
+    ts.lastSeenSeq    = 0;
     ts.cardCount      = 0;
     state.activeRunningTab = useCase;
 
@@ -201,9 +210,9 @@ async function _stopLiveForTab(useCase) {
   await stopLive().catch(() => {});
 
   const ts = state.tabs[useCase];
-  ts.liveJobId       = null;
+  ts.liveSessionId   = null;
   ts.lastResult      = null;
-  ts.lastTimestamp   = null;
+  ts.lastSeenSeq     = 0;
   ts.cardCount       = 0;
   state.activeRunningTab = null;
 
@@ -233,9 +242,9 @@ async function _stopLiveForTab(useCase) {
 function clearResults(useCase) {
   const listEl = document.getElementById(`results-list-${useCase}`);
   if (listEl) listEl.innerHTML = '<div class="empty-state">Waiting for first inference…</div>';
-  state.tabs[useCase].lastResult    = null;
-  state.tabs[useCase].lastTimestamp = null;
-  state.tabs[useCase].cardCount     = 0;
+  state.tabs[useCase].lastResult  = null;
+  state.tabs[useCase].lastSeenSeq = 0;
+  state.tabs[useCase].cardCount   = 0;
 }
 
 
@@ -245,7 +254,7 @@ function loadSettingsIntoForm(data) {
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
   set('s-image-size',    data.max_image_size    || 640);
   set('s-num-predict',   data.num_predict       || 512);
-  set('s-interval',      data.frame_interval    || 2);
+  set('s-interval',      data.frame_interval    || 3);
   set('s-job-timeout',   data.job_timeout_seconds   || 120);
   set('s-frame-timeout', data.frame_timeout_seconds || 30);
   set('s-queue-size',    data.max_queue_size    || 50);

@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from api import state
+from api.config import LLAMA_SERVER_URL, INFERENCE_TIMEOUT, cfg
 
 router = APIRouter()
 
@@ -31,9 +32,9 @@ async def improve_prompt(data: dict):
         try:
             async with httpx.AsyncClient() as client:
                 resp = await client.post(
-                    "http://127.0.0.1:8080/v1/chat/completions",
+                    f"{LLAMA_SERVER_URL}/v1/chat/completions",
                     json={
-                        "model": "qwen3-vl:2b-cli",
+                        "model": cfg("model"),
                         "max_tokens": 300,
                         "temperature": 0.4,
                         "messages": [
@@ -41,7 +42,7 @@ async def improve_prompt(data: dict):
                             {"role": "user", "content": prompt},
                         ],
                     },
-                    timeout=30.0,
+                    timeout=INFERENCE_TIMEOUT,
                 )
                 resp.raise_for_status()
                 result = resp.json()
