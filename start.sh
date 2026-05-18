@@ -1,6 +1,15 @@
 #!/bin/bash
+
+echo ""
+echo "  ┌─────────────────────────────────────┐"
+echo "  │       USE CASE DEMO - DEPLOY        │"
+echo "  └─────────────────────────────────────┘"
+echo ""
+
 echo "[1/5] Freeing RAM..."
 sudo systemctl stop gdm3 snapd ModemManager bluetooth 2>/dev/null
+sudo systemctl stop ollama 2>/dev/null          
+pkill -f ollama 2>/dev/null                     
 pkill -f vscode-server 2>/dev/null
 pkill -f "server/node" 2>/dev/null
 pkill -f gnome-software 2>/dev/null
@@ -39,6 +48,7 @@ echo "[4/5] Starting llama-server..."
     -ngl 99 -c 1024 --temp 0.1 --top-k 20 --top-p 0.8 \
     --presence-penalty 1.5 --jinja -np 1 \
     --cache-ram 0 \
+    --log-disable \
     --port 8080 --host 127.0.0.1 &
 for i in {1..30}; do
     curl -s http://127.0.0.1:8080/health > /dev/null 2>&1 && break

@@ -32,7 +32,7 @@ _CUSTOM_SYSTEM = (
 _settings = {
     "model":                    "qwen3-vl:2b-cli",
     "num_predict":              512,
-    "max_image_size":           640,
+    "max_image_size":           320,
     "frame_interval":           3.0,
     "job_timeout_seconds":      120,
     "frame_timeout_seconds":    30,
@@ -57,3 +57,22 @@ def cfg(key):
 
 def update_cfg(key, value):
     _settings[key] = value
+
+
+_USE_CASES = {
+    "gear": {
+        "system_key": "gear_system_prompt",
+        "user_key":   "gear_user_prompt",
+        "fixed_user": True,   # user prompt comes from settings, not request body
+    },
+    "weapon": {
+        "system_key": "weapon_system_prompt",
+        "user_key":   "weapon_user_prompt",
+        "fixed_user": True,
+    },
+    "custom": {
+        "system_key": "custom_system_prompt",
+        "user_key":   None,
+        "fixed_user": False,  # user prompt comes from request body
+    },
+}
