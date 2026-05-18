@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 
 from api import state
 from api.camera import start_camera
-from api.config import APP_HOST, APP_PORT
+from api.constants import APP_HOST, APP_PORT
 from api.routes.analyze import router as analyze_router
 from api.routes.feed import router as feed_router
 from api.routes.improve import router as improve_router

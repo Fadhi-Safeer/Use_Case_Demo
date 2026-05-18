@@ -1,12 +1,3 @@
-from pathlib import Path
-
-# Infrastructure constants
-LLAMA_SERVER_URL  = "http://127.0.0.1:8080"
-APP_HOST          = "0.0.0.0"
-APP_PORT          = 8000
-INFERENCE_TIMEOUT = 30
-MODELS_JSON       = Path(__file__).parent.parent / "models.json"
-
 _GEAR_SYSTEM = (
     "/no_think You are a construction site safety compliance inspector. "
     "Examine the image. If no worker is visible, answer No. "
@@ -53,6 +44,10 @@ _settings = {
     "weapon_system_prompt":     _WEAPON_SYSTEM,
     "weapon_user_prompt":       _WEAPON_USER,
     "custom_system_prompt":     _CUSTOM_SYSTEM,
+    # Display feed (dimming) — no resize by default; user opts in via Settings
+    "display_max_width":        640,
+    "display_jpeg_quality":     30,
+    "display_fps_cap":          25,
 }
 
 

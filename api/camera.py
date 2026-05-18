@@ -5,6 +5,7 @@ import time
 import cv2
 
 from api import state
+from api.runtime import cfg
 
 CAMERA_DEVICE = "/dev/video0"
 CAMERA_INDEX = 0
@@ -33,8 +34,22 @@ def _camera_loop():
             # frame = cv2.flip(frame, 1)
         if ret:
             jpg = encode_bytes(frame)
+
+            # Build display frame (rate-limited to display_fps_cap)
+            fps_cap = max(1, int(cfg("display_fps_cap")))
+            display_jpg = None
+            if (t0 - state._last_display_encode_ts) >= (1.0 / fps_cap):
+                dw = int(cfg("display_max_width"))
+                h, w = frame.shape[:2]
+                size = (dw, int(dw * h / w)) if dw < w else None
+                dq = int(cfg("display_jpeg_quality"))
+                display_jpg = encode_bytes(frame, size=size, quality=dq)
+
             with state.frame_lock:
                 state.latest_frame = jpg
+                if display_jpg is not None:
+                    state.latest_frame_display = display_jpg
+                    state._last_display_encode_ts = t0
         elapsed = time.monotonic() - t0
         time.sleep(max(0, 0.033 - elapsed))  # maintain ~30 fps
 

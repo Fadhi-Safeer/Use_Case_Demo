@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 
 from api import state
 from api.camera import encode_b64
-from api.config import cfg
+from api.runtime import cfg
 from api.inference import query
 
 router = APIRouter()
@@ -237,15 +237,11 @@ async def _consumer(queue: asyncio.Queue):
         async with state.processing_lock:
             t0 = time.time()
             try:
-                size      = int(cfg("max_image_size"))
-                frame_b64 = encode_b64(item.frame_jpg, size=(size, size))
+                w         = int(cfg("max_image_size"))
+                h         = w * 9 // 16
+                frame_b64 = encode_b64(item.frame_jpg, size=(w, h))
                 thumb_b64 = encode_b64(item.frame_jpg, size=(192, 128), quality=75)
-                loop      = asyncio.get_event_loop()
-                result    = await loop.run_in_executor(
-                    None,
-                    lambda f=frame_b64, p=item.prompt, s=item.system_prompt:
-                        query(f, p, system_prompt=s),
-                )
+                result    = await query(frame_b64, item.prompt, system_prompt=item.system_prompt)
                 elapsed    = round(time.time() - t0, 1)
                 latency_ms = int((time.monotonic() - item.capture_ts) * 1000)
                 _record_latency(latency_ms)

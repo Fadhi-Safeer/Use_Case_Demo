@@ -1,10 +1,9 @@
 import asyncio
 import collections
 import threading
-from collections import OrderedDict
 
 from api.alert_manager import AlertManager
-from api.config import (
+from api.runtime import (
     ALERT_CONSECUTIVE_THRESHOLD,
     ALERT_MAX_GAP_SECONDS,
     ALERT_SOUND_PATH,
@@ -13,9 +12,10 @@ from api.config import (
 processing_lock: asyncio.Lock = None   # initialised in main.py lifespan
 
 latest_frame: bytes = None
+latest_frame_display: bytes = None
+_last_display_encode_ts: float = 0.0
 frame_lock = threading.Lock()
 
-job_queue: OrderedDict = OrderedDict()
 history: list = []
 
 HISTORY_MAX = 100

@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from api.config import cfg, update_cfg
+from api.runtime import cfg, update_cfg
 from api.camera import CAMERA_DEVICE
 
 router = APIRouter()
@@ -20,6 +20,9 @@ ALLOWED_KEYS = {
     "weapon_system_prompt",
     "weapon_user_prompt",
     "custom_system_prompt",
+    "display_max_width",
+    "display_jpeg_quality",
+    "display_fps_cap",
 }
 
 
@@ -39,6 +42,9 @@ def _current_settings():
         "weapon_user_prompt":    cfg("weapon_user_prompt"),
         "custom_system_prompt":  cfg("custom_system_prompt"),
         "camera_device":         CAMERA_DEVICE,
+        "display_max_width":     cfg("display_max_width"),
+        "display_jpeg_quality":  cfg("display_jpeg_quality"),
+        "display_fps_cap":       cfg("display_fps_cap"),
     }
 
 

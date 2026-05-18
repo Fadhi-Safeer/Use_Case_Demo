@@ -3,7 +3,8 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from api import state
-from api.config import LLAMA_SERVER_URL, INFERENCE_TIMEOUT, cfg
+from api.constants import LLAMA_SERVER_URL, INFERENCE_TIMEOUT
+from api.runtime import cfg
 
 router = APIRouter()
 
